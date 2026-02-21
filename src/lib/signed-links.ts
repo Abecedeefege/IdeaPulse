@@ -10,11 +10,11 @@ export async function signActionPayload(
   userId: string
 ): Promise<string> {
   const secret = new TextEncoder().encode(SECRET);
-  return jose.sign(
-    { ideaId, action, userId, iat: Math.floor(Date.now() / 1000) },
-    secret,
-    { algorithm: ALG, expiresIn: EXP }
-  );
+  return new jose.SignJWT({ ideaId, action, userId })
+    .setProtectedHeader({ alg: ALG })
+    .setIssuedAt()
+    .setExpirationTime(EXP)
+    .sign(secret);
 }
 
 export async function verifyActionToken(token: string): Promise<{

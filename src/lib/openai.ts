@@ -3,7 +3,11 @@ import type { IdeaJson, AnalysisJson } from "@/types";
 import { ideaJsonSchema, analysisJsonSchema } from "@/types";
 import { buildIdeasPrompt, buildAnalysisPrompt } from "@/lib/prompts";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!_client) _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _client;
+}
 const modelFast = process.env.OPENAI_MODEL_FAST || "gpt-4o-mini";
 const modelDeep = process.env.OPENAI_MODEL_DEEP || "gpt-4o";
 
@@ -34,7 +38,7 @@ export async function generateIdeas(
   userProfileSummary: string,
   count: number = 10
 ): Promise<{ ideas: IdeaJson[]; usage: TokenUsage }> {
-  const res = await client.chat.completions.create({
+  const res = await getClient().chat.completions.create({
     model: modelFast,
     messages: [{ role: "user", content: buildIdeasPrompt(userProfileSummary, count) }],
     response_format: {
@@ -91,7 +95,7 @@ export async function generateAnalysis(
   idea: IdeaJson,
   userContext: string
 ): Promise<{ analysis: AnalysisJson; usage: TokenUsage }> {
-  const res = await client.chat.completions.create({
+  const res = await getClient().chat.completions.create({
     model: modelDeep,
     messages: [
       { role: "user", content: buildAnalysisPrompt(JSON.stringify(idea), userContext) },

@@ -1,7 +1,11 @@
 import { Resend } from "resend";
 import { signActionPayload, actionUrl } from "./signed-links";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 const from = process.env.EMAIL_FROM || "IdeaPulse <onboarding@resend.dev>";
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -62,7 +66,7 @@ export async function sendBatchEmail(
     </html>
   `;
 
-  await resend.emails.send({ from, to: [to], subject: "Your 10 ideas from IdeaPulse", html });
+  await getResend().emails.send({ from, to: [to], subject: "Your 10 ideas from IdeaPulse", html });
 }
 
 function escapeHtml(s: string): string {

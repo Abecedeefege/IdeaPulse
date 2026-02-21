@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     if (!user) {
       const { data: newUser, error: insertError } = await db.from("users").insert({ email, email_frequency: emailFrequency, profile_json: profileJson }).select("id").single();
       if (insertError) return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
-      user = newUser;
+      user = { id: newUser.id, email, profile_json: profileJson, unsubscribed_at: null };
     } else {
       await db.from("users").update({ email_frequency: emailFrequency, profile_json: profileJson, unsubscribed_at: null, updated_at: new Date().toISOString() }).eq("id", user.id);
     }

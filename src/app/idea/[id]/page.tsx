@@ -3,8 +3,14 @@ import { notFound } from "next/navigation";
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = supabaseServer();
-  const { data: idea } = await db.from("ideas").select("id, idea_json, is_public").eq("id", id).single();
+  let idea: { id: string; idea_json: unknown; is_public: boolean } | null = null;
+  try {
+    const db = supabaseServer();
+    const { data } = await db.from("ideas").select("id, idea_json, is_public").eq("id", id).single();
+    idea = data;
+  } catch {
+    // Supabase not configured or error
+  }
   if (!idea) notFound();
   const j = idea.idea_json as Record<string, unknown>;
   return (

@@ -3,8 +3,18 @@ import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
 
+function checkEnv(): string | null {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase (add NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Vercel)";
+  if (!process.env.OPENAI_API_KEY) return "OpenAI (add OPENAI_API_KEY in Vercel)";
+  if (!process.env.RESEND_API_KEY) return "Resend (add RESEND_API_KEY in Vercel)";
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
+    const envError = checkEnv();
+    if (envError) return NextResponse.json({ error: `Server not configured: ${envError}` }, { status: 503 });
+
     const body = await req.json();
     const email = typeof body.email === "string" ? body.email.trim() : "";
     const emailFrequency = body.email_frequency === "daily" ? "daily" : "weekly";

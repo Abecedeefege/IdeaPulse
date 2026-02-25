@@ -4,16 +4,21 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function TopIdeasPage() {
-  const db = supabaseServer();
-  const { data: likes } = await db.from("interactions").select("idea_id").eq("type", "like");
-  const ideaIds = [...new Set((likes ?? []).map((r) => r.idea_id))].slice(0, 30);
-  const { data: ideas } = ideaIds.length > 0 ? await db.from("ideas").select("id, idea_json, created_at").in("id", ideaIds) : { data: [] };
+  let withCount: { id: string; idea_json: unknown; created_at?: string; likeCount: number }[] = [];
+  try {
+    const db = supabaseServer();
+    const { data: likes } = await db.from("interactions").select("idea_id").eq("type", "like");
+    const ideaIds = [...new Set((likes ?? []).map((r) => r.idea_id))].slice(0, 30);
+    const { data: ideas } = ideaIds.length > 0 ? await db.from("ideas").select("id, idea_json, created_at").in("id", ideaIds) : { data: [] };
 
-  const withCount = (ideas ?? []).map((idea) => {
+    withCount = (ideas ?? []).map((idea) => {
     const likeCount = (likes ?? []).filter((l) => l.idea_id === idea.id).length;
     return { ...idea, likeCount };
   });
-  withCount.sort((a, b) => b.likeCount - a.likeCount);
+    withCount.sort((a, b) => b.likeCount - a.likeCount);
+  } catch {
+    // Supabase not configured or DB error — show empty state instead of crashing
+  }
 
   return (
     <div>

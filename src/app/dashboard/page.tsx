@@ -5,16 +5,21 @@ import RequestMoreForm from "@/components/RequestMoreForm";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const db = supabaseServer();
-  const { data: batches } = await db.from("idea_batches").select("id, scheduled_for_date, created_at").order("created_at", { ascending: false }).limit(5);
+  let byBatch: { id: string; scheduled_for_date: string; created_at?: string; ideas: { id: string; batch_id: string; idea_json: unknown; created_at?: string }[] }[] = [];
+  try {
+    const db = supabaseServer();
+    const { data: batches } = await db.from("idea_batches").select("id, scheduled_for_date, created_at").order("created_at", { ascending: false }).limit(5);
 
-  const batchIds = (batches ?? []).map((b) => b.id);
-  const { data: ideas } = batchIds.length > 0
-    ? await db.from("ideas").select("id, batch_id, idea_json, created_at").in("batch_id", batchIds).order("created_at", { ascending: false })
-    : { data: [] };
+    const batchIds = (batches ?? []).map((b) => b.id);
+    const { data: ideas } = batchIds.length > 0
+      ? await db.from("ideas").select("id, batch_id, idea_json, created_at").in("batch_id", batchIds).order("created_at", { ascending: false })
+      : { data: [] };
 
-  const ideaList = (ideas ?? []).slice(0, 20);
-  const byBatch = batchIds.length ? (batches ?? []).map((b) => ({ ...b, ideas: ideaList.filter((i) => i.batch_id === b.id) })) : [];
+    const ideaList = (ideas ?? []).slice(0, 20);
+    byBatch = batchIds.length ? (batches ?? []).map((b) => ({ ...b, ideas: ideaList.filter((i) => i.batch_id === b.id) })) : [];
+  } catch {
+    // Supabase not configured or DB error — show empty state instead of crashing
+  }
 
   return (
     <div>

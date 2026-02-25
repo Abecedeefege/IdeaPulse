@@ -15,7 +15,7 @@ export default function UsageBanner() {
   if (!usage) return null;
 
   return (
-    <div className="text-center py-2 px-3 bg-gray-100 border-b border-gray-200 text-sm text-gray-600">
+    <div className="text-center py-2 px-3 bg-zinc-900/50 border-b border-zinc-800 text-sm text-zinc-400">
       <span className="font-medium">AI usage (project total):</span>{" "}
       <span>{usage.totalTokens.toLocaleString()} tokens</span>
       <span className="mx-2">|</span>

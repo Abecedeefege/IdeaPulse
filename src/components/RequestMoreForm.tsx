@@ -32,11 +32,11 @@ export default function RequestMoreForm() {
   };
 
   return (
-    <section className="mb-8 p-4 border border-gray-200 rounded-lg bg-gray-50">
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">Request 10 more ideas</h2>
-      <p className="text-sm text-gray-600 mb-3">Get another batch of 10 ideas by email. One batch per day per account.</p>
+    <section className="mb-8 p-5 border border-zinc-800 rounded-xl bg-zinc-900/40">
+      <h2 className="text-lg font-semibold text-white mb-2">Request 10 more ideas</h2>
+      <p className="text-sm text-zinc-400 mb-3">Get another batch of 10 ideas by email. One batch per day per account.</p>
       {status === "success" ? (
-        <p className="text-green-700 text-sm">{message}</p>
+        <p className="text-emerald-400 text-sm">{message}</p>
       ) : (
         <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
           <div className="flex-1 min-w-[200px]">
@@ -48,13 +48,13 @@ export default function RequestMoreForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-zinc-700 rounded-xl px-3 py-2 text-sm bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none"
             />
           </div>
-          <button type="submit" disabled={status === "loading"} className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50">
+          <button type="submit" disabled={status === "loading"} className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50 transition-colors">
             {status === "loading" ? "Sending…" : "Send 10 more"}
           </button>
-          {status === "error" && <p className="w-full text-red-600 text-sm mt-1">{message}</p>}
+          {status === "error" && <p className="w-full text-red-400 text-sm mt-1">{message}</p>}
         </form>
       )}
     </section>

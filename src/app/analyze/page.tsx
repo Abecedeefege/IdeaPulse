@@ -39,16 +39,16 @@ function AnalyzeContent() {
     })();
   }, [ideaId, token]);
 
-  if (!token || !ideaId) return <div className="max-w-2xl mx-auto"><p className="text-gray-600">Invalid or missing link. Use the link from your email.</p></div>;
-  if (loading) return <div className="max-w-2xl mx-auto"><p className="text-gray-600">Generating analysis…</p></div>;
-  if (paywall) return <div className="max-w-2xl mx-auto"><h2 className="text-xl font-bold text-gray-900 mb-2">Analysis limit</h2><p className="text-gray-600 mb-4">{error}</p></div>;
-  if (error && !analysisMd) return <div className="max-w-2xl mx-auto"><p className="text-red-600">{error}</p></div>;
+  if (!token || !ideaId) return <div className="max-w-2xl mx-auto"><p className="text-zinc-400">Invalid or missing link. Use the link from your email.</p></div>;
+  if (loading) return <div className="max-w-2xl mx-auto"><p className="text-zinc-400">Generating analysis…</p></div>;
+  if (paywall) return <div className="max-w-2xl mx-auto"><h2 className="text-xl font-bold text-white mb-2">Analysis limit</h2><p className="text-zinc-400 mb-4">{error}</p></div>;
+  if (error && !analysisMd) return <div className="max-w-2xl mx-auto"><p className="text-red-400">{error}</p></div>;
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Business analysis</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Business analysis</h1>
       <article
-        className="prose prose-gray max-w-none"
+        className="prose prose-invert prose-zinc max-w-none"
         dangerouslySetInnerHTML={{
           __html: analysisMd ? analysisMd.split("\n").map((line) => (line.startsWith("## ") ? `<h2>${escapeHtml(line.slice(3))}</h2>` : `<p>${escapeHtml(line)}</p>`)).join("") : "",
         }}
@@ -59,7 +59,7 @@ function AnalyzeContent() {
 
 export default function AnalyzePage() {
   return (
-    <Suspense fallback={<div className="max-w-2xl mx-auto">Loading…</div>}>
+    <Suspense fallback={<div className="max-w-2xl mx-auto text-zinc-400">Loading…</div>}>
       <AnalyzeContent />
     </Suspense>
   );

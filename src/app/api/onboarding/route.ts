@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
+import { sendMagicLinkServer } from "@/lib/auth-server";
 
 function checkEnv(): string | null {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase (add NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Vercel)";
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
     const { count } = await db.from("idea_batches").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("scheduled_for_date", today);
     if (count != null && count >= 1) return NextResponse.json({ ok: true, message: "You're already set up. Check your inbox or dashboard." });
 
-    const summary = [profileJson.primary_goal, Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
+    const summary = [profileJson.preference_summary, profileJson.primary_goal, Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
     const { ideas, usage } = await generateIdeas(summary, 10);
     await logRequest({ userId, kind: "generate_ideas", model: process.env.OPENAI_MODEL_FAST, tokensIn: usage.prompt, tokensOut: usage.completion, costEst: usage.costEst });
 
@@ -87,6 +88,7 @@ export async function POST(req: Request) {
 
     const { data: savedIdeas } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
     await sendBatchEmail(email, savedIdeas ?? [], userId);
+    sendMagicLinkServer(email).catch((e) => console.error("onboarding: magic link", e));
     return NextResponse.json({ ok: true, message: "Check your inbox for your first batch of ideas." });
   } catch (e) {
     console.error("onboarding", e);

@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import type { IdeaJson } from "@/types";
+import LightbulbLoader from "@/components/LightbulbLoader";
 
 const GOALS = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
 const INTERESTS = ["Marketing / growth", "AI / automation", "Content", "Local business", "SaaS", "E-commerce", "Community"];
@@ -9,7 +12,7 @@ const BUDGET_OPTIONS = ["$0–100", "$100–500", "$500–2k", "$2k+"];
 const SKILL_TAGS = ["Engineering", "Design", "Marketing", "Sales", "Ops"];
 const RISK_OPTIONS = ["Low", "Medium", "High"];
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const [email, setEmail] = useState("");
   const [frequency, setFrequency] = useState<"daily" | "weekly">("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("");
@@ -21,6 +24,21 @@ export default function OnboardingPage() {
   const [interests, setInterests] = useState<string[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  const [exampleIdeas, setExampleIdeas] = useState<IdeaJson[] | null>(null);
+  const [exampleStatus, setExampleStatus] = useState<"idle" | "loading" | "ready" | "error" | "needsAuth">("idle");
+  const [exampleMessage, setExampleMessage] = useState("");
+  const [exampleErrorStatus, setExampleErrorStatus] = useState<number | null>(null);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("resetExample") === "1") {
+      fetch("/api/debug/reset-example", { credentials: "include" })
+        .then(() => window.history.replaceState({}, "", "/onboarding"))
+        .catch(() => {});
+    }
+  }, [searchParams]);
 
   const toggleInterest = (x: string) => {
     setInterests((prev) => (prev.includes(x) ? prev.filter((i) => i !== x) : [...prev, x]));
@@ -58,6 +76,37 @@ export default function OnboardingPage() {
     }
   };
 
+  const handleGetRandomIdeas = async () => {
+    if (exampleStatus === "loading") return;
+    setExampleStatus("loading");
+    setExampleMessage("");
+    setExampleErrorStatus(null);
+    try {
+      const res = await fetch("/api/example-ideas", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setExampleErrorStatus(res.status);
+        if (res.status === 403) {
+          setExampleStatus("needsAuth");
+          setExampleMessage(
+            data.error ||
+              "You've already used your free 10 ideas. Sign up or log in to get more."
+          );
+        } else {
+          setExampleStatus("error");
+          setExampleMessage(data.error || "Something went wrong.");
+        }
+        return;
+      }
+      setExampleIdeas((data.ideas || []) as IdeaJson[]);
+      setExampleStatus("ready");
+    } catch {
+      setExampleStatus("error");
+      setExampleErrorStatus(null);
+      setExampleMessage("Network error. Try again.");
+    }
+  };
+
   if (status === "success") {
     return (
       <div className="max-w-lg mx-auto text-center py-12">
@@ -68,17 +117,72 @@ export default function OnboardingPage() {
     );
   }
 
+  const isLoading = status === "loading" || exampleStatus === "loading";
+
   return (
+    <>
+      <LightbulbLoader
+        show={isLoading}
+        label={status === "loading" ? "Signing up and generating your ideas…" : "Generating ideas…"}
+      />
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-white">Onboarding</h1>
-        <a
-          href="/ideas"
-          className="text-sm font-medium text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline"
+        <button
+          type="button"
+          onClick={handleGetRandomIdeas}
+          className="text-sm font-medium text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline disabled:opacity-60"
+          disabled={exampleStatus === "loading"}
         >
-          Get random ideas →
-        </a>
+          {exampleStatus === "loading" ? "Getting ideas…" : "Get random ideas →"}
+        </button>
       </div>
+
+      {exampleStatus !== "idle" && (
+        <div className="space-y-3 p-4 rounded-xl border border-zinc-800 bg-zinc-900/40">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-white">Your free sample — 10 random ideas</h2>
+            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">
+              1 free batch per visitor
+            </span>
+          </div>
+          {(exampleMessage || exampleErrorStatus != null) && (
+            <p
+              className={
+                exampleStatus === "error" || exampleStatus === "needsAuth" ? "text-red-400 text-sm" : "text-zinc-400 text-sm"
+              }
+            >
+              {exampleErrorStatus != null && (
+                <span className="font-mono text-zinc-500 mr-1">{exampleErrorStatus}:</span>
+              )}
+              {exampleMessage}
+            </p>
+          )}
+          {exampleStatus === "needsAuth" && (
+            <p className="text-xs text-zinc-500">
+              Use the form below to sign up and get more ideas delivered by email. Already have an
+              account? <a href="/login" className="text-violet-400 hover:text-violet-300">Log in</a>.
+            </p>
+          )}
+          {exampleIdeas && exampleIdeas.length > 0 && (
+            <ul className="space-y-3 mt-2 max-h-96 overflow-y-auto pr-1">
+              {exampleIdeas.map((idea, idx) => (
+                <li
+                  key={idx}
+                  className="border border-zinc-800 rounded-lg p-3 bg-zinc-900/60"
+                >
+                  <h3 className="text-sm font-semibold text-white">{idea.title}</h3>
+                  <p className="text-xs text-zinc-400 mt-1">{idea.one_sentence_hook}</p>
+                  <p className="text-xs text-zinc-500 mt-2">
+                    First step: {idea.first_step_under_30min}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Email</label>
@@ -217,5 +321,15 @@ export default function OnboardingPage() {
         <button type="submit" disabled={status === "loading"} className="w-full bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-xl font-medium disabled:opacity-50 transition-colors">{status === "loading" ? "Signing up…" : "Get my ideas"}</button>
       </form>
     </div>
+    </>
   );
 }
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="max-w-lg mx-auto py-12 text-zinc-400">Loading…</div>}>
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+

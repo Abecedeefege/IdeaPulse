@@ -66,7 +66,12 @@ export async function sendBatchEmail(
     </html>
   `;
 
-  await getResend().emails.send({ from, to: [to], subject: "Your 10 ideas from IdeaPulse", html });
+  try {
+    await getResend().emails.send({ from, to: [to], subject: "Your 10 ideas from IdeaPulse", html });
+  } catch (e) {
+    console.error("sendBatchEmail: Resend send failed", e);
+    throw e;
+  }
 }
 
 function escapeHtml(s: string): string {

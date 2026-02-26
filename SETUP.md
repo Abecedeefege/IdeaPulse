@@ -1,10 +1,12 @@
 # Vercel + Supabase setup (brief)
 
-## 1. Supabase
+## 1. Supabase (create tables — do this once)
 
-1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project** (name it, set DB password).
-2. **Project Settings** → **API**: copy **Project URL**, **anon** key, **service_role** key.
-3. **SQL Editor** → **New query**: paste and run the contents of `supabase/migrations/20260219000000_initial_schema.sql`.
+1. Open your IdeaPulse project at [supabase.com/dashboard](https://supabase.com/dashboard).
+2. In the left sidebar click **SQL Editor** → **New query**.
+3. Open the file **`supabase/run-once.sql`** in this repo, copy **all** of it, paste into the query box, then click **Run**.
+
+All required tables will be created. You can confirm in **Table Editor** (users, idea_batches, ideas, etc.).
 
 ## 2. Vercel
 

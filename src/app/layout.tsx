@@ -17,12 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased min-h-screen bg-zinc-950 text-zinc-100">
-        <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur">
+        <header className="relative z-40 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <Logo />
             <nav className="flex gap-4 text-sm">
               <a href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">Dashboard</a>
               <a href="/ideas" className="text-zinc-400 hover:text-white transition-colors">Top Ideas</a>
+              <a href="/pricing" className="text-zinc-400 hover:text-white transition-colors">Pricing</a>
               <a href="/profile" className="text-zinc-400 hover:text-white transition-colors">Profile</a>
             </nav>
           </div>

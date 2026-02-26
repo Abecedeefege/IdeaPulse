@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { trendingRequests } from "@/data/trending-requests";
+import IdeaQuickActions from "@/components/IdeaQuickActions";
+import GetSimilarIdeas from "@/components/GetSimilarIdeas";
 
 export default async function TrendingRequestPage({
   params,
@@ -11,6 +13,8 @@ export default async function TrendingRequestPage({
   const { slug } = await params;
   const req = trendingRequests.find((r) => r.slug === slug);
   if (!req) notFound();
+  const base = process.env.NEXT_PUBLIC_APP_URL || "";
+  const ideaUrl = base ? `${base}/trending/${slug}` : undefined;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -24,9 +28,16 @@ export default async function TrendingRequestPage({
       </div>
       <p className="text-lg text-violet-200 mb-6">{req.teaser}</p>
       <p className="text-zinc-400 mb-8">{req.promptPreview}</p>
+      <IdeaQuickActions
+        title={req.title}
+        oneSentenceHook={req.teaser}
+        shareText={req.promptPreview}
+        ideaUrl={ideaUrl}
+      />
+      <GetSimilarIdeas context={`${req.title}. ${req.promptPreview}`} />
       <Link
         href="/onboarding"
-        className="inline-block bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+        className="inline-block mt-6 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
       >
         Get my ideas like this
       </Link>

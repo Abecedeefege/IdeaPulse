@@ -1,5 +1,7 @@
 import { supabaseServer } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import IdeaQuickActions from "@/components/IdeaQuickActions";
+import GetSimilarIdeas from "@/components/GetSimilarIdeas";
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,6 +15,8 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
   }
   if (!idea) notFound();
   const j = idea.idea_json as Record<string, unknown>;
+  const base = process.env.NEXT_PUBLIC_APP_URL || "";
+  const ideaUrl = base ? `${base}/idea/${id}` : undefined;
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-4">{String(j.title ?? "Idea")}</h1>
@@ -22,6 +26,13 @@ export default async function IdeaPage({ params }: { params: Promise<{ id: strin
       <p className="mb-2"><strong className="text-zinc-300">First step:</strong> <span className="text-zinc-400">{String(j.first_step_under_30min ?? "")}</span></p>
       <p className="mb-4"><strong className="text-zinc-300">Validate:</strong> <span className="text-zinc-400">{String(j.validate_question ?? "")}</span></p>
       <p className="text-sm text-zinc-500">Share: {String(j.share_text_tweet_sized ?? "")}</p>
+      <IdeaQuickActions
+        title={String(j.title ?? "Idea")}
+        oneSentenceHook={String(j.one_sentence_hook ?? "")}
+        shareText={String(j.share_text_tweet_sized ?? "")}
+        ideaUrl={ideaUrl}
+      />
+      <GetSimilarIdeas seedIdea={j as Record<string, unknown>} />
     </div>
   );
 }

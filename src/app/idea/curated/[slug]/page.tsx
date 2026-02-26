@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { curatedIdeas } from "@/data/curated-ideas";
+import IdeaQuickActions from "@/components/IdeaQuickActions";
+import GetSimilarIdeas from "@/components/GetSimilarIdeas";
 
 export default async function CuratedIdeaPage({
   params,
@@ -27,6 +29,12 @@ export default async function CuratedIdeaPage({
       <p className="mb-2"><strong className="text-zinc-300">First step:</strong> <span className="text-zinc-400">{j.first_step_under_30min}</span></p>
       <p className="mb-4"><strong className="text-zinc-300">Validate:</strong> <span className="text-zinc-400">{j.validate_question}</span></p>
       <p className="text-sm text-zinc-500">Share: {j.share_text_tweet_sized}</p>
+      <IdeaQuickActions
+        title={j.title}
+        oneSentenceHook={j.one_sentence_hook}
+        shareText={j.share_text_tweet_sized}
+      />
+      <GetSimilarIdeas seedIdea={j} />
       <div className="mt-8 pt-6 border-t border-zinc-800">
         <Link href="/ideas" className="text-violet-400 hover:text-violet-300 font-medium">
           ← Back to Top Ideas

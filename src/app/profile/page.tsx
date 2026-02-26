@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase";
 
 const GOALS = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
 const INTERESTS = ["Marketing / growth", "AI / automation", "Content", "Local business", "SaaS", "E-commerce", "Community"];
@@ -10,6 +12,7 @@ const SKILL_TAGS = ["Engineering", "Design", "Marketing", "Sales", "Ops"];
 const RISK_OPTIONS = ["Low", "Medium", "High"];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly">("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("");
@@ -21,6 +24,43 @@ export default function ProfilePage() {
   const [interests, setInterests] = useState<string[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) return;
+        return res.json();
+      })
+      .then((data) => {
+        if (!data?.email) return;
+        setIsLoggedIn(true);
+        setEmail(data.email);
+        setEmailFrequency(data.email_frequency === "daily" ? "daily" : "weekly");
+        const p = data.profile || {};
+        const goalsList = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
+        if (goalsList.includes(p.primary_goal)) {
+          setPrimaryGoal(p.primary_goal || "");
+          setGoalOther("");
+        } else {
+          setPrimaryGoal("Other");
+          setGoalOther(p.primary_goal || "");
+        }
+        const constraints = p.constraints || {};
+        setTimePerWeek(constraints.time_per_week || "");
+        setBudget(constraints.budget || "");
+        setSkills(constraints.skills || "");
+        setRiskTolerance(constraints.risk_tolerance || "");
+        setInterests(Array.isArray(p.interests) ? p.interests : []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleLogout = async () => {
+    await supabaseBrowser().auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   const toggleInterest = (x: string) => {
     setInterests((prev) => (prev.includes(x) ? prev.filter((i) => i !== x) : [...prev, x]));
@@ -100,15 +140,26 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-white">Your profile</h1>
-        <button
-          type="button"
-          onClick={loadProfile}
-          className="text-sm font-medium text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline"
-        >
-          Load from email
-        </button>
+        <div className="flex gap-3">
+          {isLoggedIn && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-sm font-medium text-zinc-400 hover:text-white"
+            >
+              Log out
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={loadProfile}
+            className="text-sm font-medium text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline"
+          >
+            Load from email
+          </button>
+        </div>
       </div>
 
       <form onSubmit={saveProfile} className="space-y-6">

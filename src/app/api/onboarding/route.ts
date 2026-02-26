@@ -38,9 +38,33 @@ export async function POST(req: Request) {
     const profileJson = { primary_goal: profile.primary_goal, constraints: profile.constraints, interests: profile.interests, preference_summary: "" };
 
     if (!user) {
-      const { data: newUser, error: insertError } = await db.from("users").insert({ email, email_frequency: emailFrequency, profile_json: profileJson }).select("id").single();
-      if (insertError) return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
-      user = { id: newUser.id, email, profile_json: profileJson, unsubscribed_at: null };
+      const { data: newUser, error: insertError } = await db
+        .from("users")
+        .insert({ email, email_frequency: emailFrequency, profile_json: profileJson })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        // If a user with this email was just created (unique violation), load it and continue.
+        const code = (insertError as any).code;
+        if (code === "23505" || code === "PGRST116") {
+          const { data: existing } = await db
+            .from("users")
+            .select("id, email, profile_json, unsubscribed_at")
+            .eq("email", email)
+            .single();
+          if (existing) {
+            user = existing;
+          } else {
+            return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+          }
+        } else {
+          console.error("onboarding: insert user error", insertError);
+          return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+        }
+      } else {
+        user = { id: newUser.id, email, profile_json: profileJson, unsubscribed_at: null };
+      }
     } else {
       await db.from("users").update({ email_frequency: emailFrequency, profile_json: profileJson, unsubscribed_at: null, updated_at: new Date().toISOString() }).eq("id", user.id);
     }

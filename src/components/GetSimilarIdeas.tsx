@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { IdeaJson } from "@/types";
-import LightbulbLoader from "@/components/LightbulbLoader";
+import FirehoseLoader from "@/components/FirehoseLoader";
 
 type Props =
   | { seedIdea: IdeaJson | Record<string, unknown>; context?: never }
@@ -39,7 +39,7 @@ export default function GetSimilarIdeas(props: Props) {
 
   return (
     <div className="mt-6">
-      <LightbulbLoader show={loading} label="Generating similar ideas…" />
+      <FirehoseLoader show={loading} label="Generating similar ideas…" />
       <button
         type="button"
         onClick={fetchSimilar}

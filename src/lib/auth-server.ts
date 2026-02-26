@@ -14,7 +14,7 @@ export async function sendMagicLinkServer(email: string): Promise<void> {
   }
   const supabase = createClient(url, anon, { auth: { persistSession: false } });
   const redirectTo = process.env.NEXT_PUBLIC_APP_URL
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/loading`
     : undefined;
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),

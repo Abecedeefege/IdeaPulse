@@ -13,7 +13,7 @@ export default function HomePage() {
           Get 10 tailored ideas in your inbox. React, share, or request a full business analysis. We learn from your feedback.
         </p>
         <Link
-          href="/onboarding"
+          href="/signup"
           className="inline-block bg-violet-600 hover:bg-violet-500 text-white px-8 py-4 rounded-xl font-medium transition-colors shadow-lg shadow-violet-900/20"
         >
           Get started

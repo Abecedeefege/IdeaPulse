@@ -32,11 +32,13 @@ export default async function CuratedIdeaPage({
       <IdeaQuickActions
         title={j.title}
         oneSentenceHook={j.one_sentence_hook}
+        whyItCouldWork={j.why_it_could_work}
+        firstStepUnder30min={j.first_step_under_30min}
         shareText={j.share_text_tweet_sized}
       />
       <GetSimilarIdeas seedIdea={j} />
       <div className="mt-8 pt-6 border-t border-zinc-800">
-        <Link href="/ideas" className="text-violet-400 hover:text-violet-300 font-medium">
+        <Link href="/top-ideas" className="text-violet-400 hover:text-violet-300 font-medium">
           ← Back to Top Ideas
         </Link>
       </div>

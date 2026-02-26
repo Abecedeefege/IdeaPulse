@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-const EXAMPLE_COOKIE_NAME = "example_ideas_used";
+const EXAMPLE_COOKIE_NAME = "example_ideas_count";
 
 /**
  * GET /api/debug/reset-example
- * Clears the example_ideas_used cookie so you can retry "Get random ideas".
+ * Resets the free-ideas count cookie so you can retry.
  * Only available when NODE_ENV !== "production" or when ?key=DEBUG_EMAIL_CHECK_SECRET.
  */
 export async function GET(req: Request) {
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(EXAMPLE_COOKIE_NAME, "", {
+  res.cookies.set(EXAMPLE_COOKIE_NAME, "0", {
     httpOnly: true,
     sameSite: "lax",
     maxAge: 0,

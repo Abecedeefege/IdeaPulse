@@ -53,7 +53,7 @@ export default async function DashboardPage() {
           <Link href="/login" className="text-violet-400 hover:text-violet-300 font-medium">
             Log in
           </Link>
-          <Link href="/onboarding" className="text-violet-400 hover:text-violet-300 font-medium">
+          <Link href="/signup" className="text-violet-400 hover:text-violet-300 font-medium">
             Sign up
           </Link>
         </div>
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
       <p className="text-zinc-400 mb-6">Your latest batches. Sign up with your email in onboarding to receive ideas.</p>
       {byBatch.length === 0 ? (
         <p className="text-zinc-500">
-          No batches yet. <Link href="/onboarding" className="text-violet-400 hover:text-violet-300">Sign up</Link> to get your first 10 ideas.
+          No batches yet. <Link href="/signup" className="text-violet-400 hover:text-violet-300">Sign up</Link> to get your first 10 ideas.
         </p>
       ) : (
         <div className="space-y-8">

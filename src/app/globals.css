@@ -28,3 +28,26 @@ body {
 .animate-lightbulb-fill {
   animation: lightbulb-fill 18s ease-out forwards;
 }
+
+@keyframes firehose-bulb {
+  0% {
+    opacity: 0;
+    transform: translate(-20px, -8px) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  85% {
+    opacity: 0.9;
+    transform: translate(40px, 24px) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(56px, 32px) scale(0.85);
+  }
+}
+
+.animate-firehose-bulb {
+  animation: firehose-bulb 2.2s ease-out infinite;
+}

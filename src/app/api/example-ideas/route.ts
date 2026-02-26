@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { generateIdeas, logRequest } from "@/lib/openai";
 
-const EXAMPLE_COOKIE_NAME = "example_ideas_used";
+const EXAMPLE_COOKIE_NAME = "example_ideas_count";
+const FREE_QUOTA_LIMIT = 1000;
 
 function checkEnv(): string | null {
   if (!process.env.OPENAI_API_KEY) return "OpenAI (add OPENAI_API_KEY in Vercel)";
@@ -20,12 +21,12 @@ export async function POST() {
     }
 
     const cookieStore = await cookies();
-    const alreadyUsed = cookieStore.get(EXAMPLE_COOKIE_NAME)?.value === "1";
-    if (alreadyUsed) {
+    const current = parseInt(cookieStore.get(EXAMPLE_COOKIE_NAME)?.value ?? "0", 10) || 0;
+    if (current >= FREE_QUOTA_LIMIT) {
       return NextResponse.json(
         {
           error:
-            "You've already used your free 10 ideas. Sign up or log in to get more.",
+            "You've used your free ideas. Sign up or log in to get more.",
         },
         { status: 403 }
       );
@@ -42,7 +43,7 @@ export async function POST() {
     });
 
     const res = NextResponse.json({ ok: true, ideas });
-    res.cookies.set(EXAMPLE_COOKIE_NAME, "1", {
+    res.cookies.set(EXAMPLE_COOKIE_NAME, String(current + 1), {
       httpOnly: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 365, // 1 year

@@ -2,6 +2,8 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import FirehoseLoader from "@/components/FirehoseLoader";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
@@ -77,10 +79,11 @@ function SignupForm() {
 
   if (status === "done") {
     return (
-      <div className="max-w-md mx-auto text-center">
-        <h1 className="text-2xl font-bold text-white mb-4">Check your email</h1>
-        <p className="text-zinc-400 mb-6">{message}</p>
-        <p className="text-sm text-zinc-500">The link will take you to your first batch of ideas.</p>
+      <div className="max-w-md mx-auto text-center space-y-6">
+        <h1 className="text-2xl font-bold text-white">Check your email</h1>
+        <p className="text-zinc-400">{message}</p>
+        <p className="text-sm text-zinc-500">Click the link to see your first batch of ideas. You can close this tab after.</p>
+        <FirehoseLoader show contained label="Waiting for you to click the link…" />
       </div>
     );
   }
@@ -113,6 +116,14 @@ function SignupForm() {
         >
           {status === "loading" ? "Generating your ideas…" : "Get my ideas"}
         </button>
+        <p className="text-center">
+          <Link
+            href="/top-ideas"
+            className="text-sm text-zinc-400 hover:text-violet-400 transition-colors"
+          >
+            See trending ideas
+          </Link>
+        </p>
       </form>
     </div>
   );

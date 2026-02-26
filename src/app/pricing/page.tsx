@@ -12,7 +12,7 @@ export default function PricingPage() {
           <h2 className="font-semibold text-white text-lg mb-1">Free</h2>
           <p className="text-2xl font-bold text-white mb-4">$0</p>
           <p className="text-sm text-zinc-400 mb-4">10 ideas per day, share, view top ideas.</p>
-          <Link href="/signup" className="block w-full text-center py-2 rounded-xl border border-zinc-600 text-zinc-300 text-sm font-medium hover:border-zinc-500">
+          <Link href="/onboarding" className="block w-full text-center py-2 rounded-xl border border-zinc-600 text-zinc-300 text-sm font-medium hover:border-zinc-500">
             Get started
           </Link>
         </div>
@@ -20,7 +20,7 @@ export default function PricingPage() {
           <h2 className="font-semibold text-white text-lg mb-1">Pro</h2>
           <p className="text-2xl font-bold text-white mb-4">$9<span className="text-sm font-normal text-zinc-400">/mo</span></p>
           <p className="text-sm text-zinc-400 mb-4">Like/dislike, personalized suggestions, private ideas, deep analysis.</p>
-          <Link href="/signup" className="block w-full text-center py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-500">
+          <Link href="/onboarding" className="block w-full text-center py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-500">
             Subscribe
           </Link>
         </div>
@@ -28,7 +28,7 @@ export default function PricingPage() {
           <h2 className="font-semibold text-white text-lg mb-1">Team</h2>
           <p className="text-2xl font-bold text-white mb-4">$29<span className="text-sm font-normal text-zinc-400">/mo</span></p>
           <p className="text-sm text-zinc-400 mb-4">Everything in Pro, shared workspace, team preferences.</p>
-          <Link href="/signup" className="block w-full text-center py-2 rounded-xl border border-zinc-600 text-zinc-300 text-sm font-medium hover:border-zinc-500">
+          <Link href="/onboarding" className="block w-full text-center py-2 rounded-xl border border-zinc-600 text-zinc-300 text-sm font-medium hover:border-zinc-500">
             Contact us
           </Link>
         </div>

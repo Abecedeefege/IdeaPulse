@@ -31,5 +31,5 @@ export default function LoadingPage() {
     };
   }, [router]);
 
-  return <FirehoseLoader show={!done} label="Generating ideas…" />;
+  return <FirehoseLoader show={!done} contained label="Generating ideas…" />;
 }

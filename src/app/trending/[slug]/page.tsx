@@ -35,12 +35,6 @@ export default async function TrendingRequestPage({
         ideaUrl={ideaUrl}
       />
       <GetSimilarIdeas context={`${req.title}. ${req.promptPreview}`} />
-      <Link
-        href="/signup"
-        className="inline-block mt-6 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-      >
-        Get my ideas like this
-      </Link>
     </div>
   );
 }

@@ -13,6 +13,7 @@ export async function sendMagicLinkServer(email: string): Promise<void> {
     return;
   }
   const supabase = createClient(url, anon, { auth: { persistSession: false } });
+  // In production, set NEXT_PUBLIC_APP_URL to your canonical URL (e.g. https://idea-pulse-chi.vercel.app) so magic links do not point to localhost.
   const redirectTo = process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/loading`
     : undefined;

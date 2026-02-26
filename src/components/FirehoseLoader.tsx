@@ -3,6 +3,7 @@
 type FirehoseLoaderProps = {
   show: boolean;
   label?: string;
+  contained?: boolean;
 };
 
 function BulbIcon({ className }: { className?: string }) {
@@ -26,20 +27,10 @@ function BulbIcon({ className }: { className?: string }) {
 const BULB_COUNT = 12;
 const BULB_SIZE = 28;
 
-export default function FirehoseLoader({
-  show,
-  label = "Generating ideas…",
-}: FirehoseLoaderProps) {
-  if (!show) return null;
-
+function HoseContent({ label }: { label: string }) {
   return (
-    <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-zinc-950/95 backdrop-blur-sm"
-      aria-busy="true"
-      aria-label={label}
-    >
+    <>
       <div className="relative h-40 w-48 flex-shrink-0 overflow-visible">
-        {/* Hose / nozzle at top-left */}
         <svg
           className="absolute left-0 top-2 h-12 w-16 text-zinc-600"
           viewBox="0 0 64 48"
@@ -52,7 +43,6 @@ export default function FirehoseLoader({
           <path d="M0 24 L40 24 L48 12 L48 36 L40 24" />
           <ellipse cx="44" cy="24" rx="4" ry="10" fill="currentColor" fillOpacity="0.2" />
         </svg>
-        {/* Stream of bulbs expelled from hose */}
         <div className="absolute left-10 top-4 right-0 bottom-0">
           {Array.from({ length: BULB_COUNT }, (_, i) => (
             <div
@@ -73,6 +63,39 @@ export default function FirehoseLoader({
         </div>
       </div>
       <p className="text-sm font-medium text-zinc-400">{label}</p>
+      <div className="w-48 h-1 rounded-full bg-zinc-800 overflow-hidden">
+        <div className="h-full rounded-full bg-violet-500 animate-firehose-progress" />
+      </div>
+    </>
+  );
+}
+
+export default function FirehoseLoader({
+  show,
+  label = "Generating ideas…",
+  contained = false,
+}: FirehoseLoaderProps) {
+  if (!show) return null;
+
+  if (contained) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center gap-4 py-8 max-h-[30vh]"
+        aria-busy="true"
+        aria-label={label}
+      >
+        <HoseContent label={label} />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-zinc-950/95 backdrop-blur-sm"
+      aria-busy="true"
+      aria-label={label}
+    >
+      <HoseContent label={label} />
     </div>
   );
 }

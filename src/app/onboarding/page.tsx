@@ -4,6 +4,10 @@ import { useState } from "react";
 
 const GOALS = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
 const INTERESTS = ["Marketing / growth", "AI / automation", "Content", "Local business", "SaaS", "E-commerce", "Community"];
+const TIME_OPTIONS = ["1–3h", "5–10h", "10–20h"];
+const BUDGET_OPTIONS = ["$0–100", "$100–500", "$500–2k", "$2k+"];
+const SKILL_TAGS = ["Engineering", "Design", "Marketing", "Sales", "Ops"];
+const RISK_OPTIONS = ["Low", "Medium", "High"];
 
 export default function OnboardingPage() {
   const [email, setEmail] = useState("");
@@ -65,8 +69,16 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">Onboarding</h1>
+    <div className="max-w-lg mx-auto space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-white">Onboarding</h1>
+        <a
+          href="/ideas"
+          className="text-sm font-medium text-violet-300 hover:text-violet-200 underline-offset-4 hover:underline"
+        >
+          Get random ideas →
+        </a>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Email</label>
@@ -90,20 +102,108 @@ export default function OnboardingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-1">Time per week</label>
-            <input type="text" value={timePerWeek} onChange={(e) => setTimePerWeek(e.target.value)} className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition" placeholder="e.g. 5–10h" />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {TIME_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setTimePerWeek(opt)}
+                  className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                    timePerWeek === opt
+                      ? "bg-violet-600 border-violet-500 text-white"
+                      : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={timePerWeek}
+              onChange={(e) => setTimePerWeek(e.target.value)}
+              className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition"
+              placeholder="Custom (e.g. 5–10h)"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-1">Budget</label>
-            <input type="text" value={budget} onChange={(e) => setBudget(e.target.value)} className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition" placeholder="e.g. bootstrapped" />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {BUDGET_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setBudget(opt)}
+                  className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                    budget === opt
+                      ? "bg-violet-600 border-violet-500 text-white"
+                      : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition"
+              placeholder="Custom (e.g. bootstrapped)"
+            />
           </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Skills</label>
-          <input type="text" value={skills} onChange={(e) => setSkills(e.target.value)} className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition" placeholder="e.g. dev, design, marketing" />
+          <div className="flex flex-wrap gap-2 mb-2">
+            {SKILL_TAGS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setSkills(tag)}
+                className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                  skills === tag
+                    ? "bg-violet-600 border-violet-500 text-white"
+                    : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+            className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition"
+            placeholder="Custom (e.g. dev, design, marketing)"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Risk tolerance</label>
-          <input type="text" value={riskTolerance} onChange={(e) => setRiskTolerance(e.target.value)} className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition" placeholder="e.g. low / medium / high" />
+          <div className="flex flex-wrap gap-2 mb-2">
+            {RISK_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setRiskTolerance(opt)}
+                className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                  riskTolerance === opt
+                    ? "bg-violet-600 border-violet-500 text-white"
+                    : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={riskTolerance}
+            onChange={(e) => setRiskTolerance(e.target.value)}
+            className="w-full border border-zinc-700 rounded-xl px-3 py-2.5 bg-zinc-900 text-white placeholder-zinc-500 focus:border-violet-500 outline-none transition"
+            placeholder="Custom (e.g. low / medium / high)"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">Interests</label>

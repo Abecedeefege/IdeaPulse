@@ -23,9 +23,17 @@ export async function POST(req: Request) {
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
     const db = supabaseServer();
-    let { data: user, error: userError } = await db.from("users").select("id, email, profile_json, unsubscribed_at").eq("email", email).single();
+    let { data: user, error: userError } = await db
+      .from("users")
+      .select("id, email, profile_json, unsubscribed_at")
+      .eq("email", email)
+      .single();
 
-    if (userError && userError.code !== "PGRST116") return NextResponse.json({ error: "Database error" }, { status: 500 });
+    // If lookup fails, log but continue as if user doesn't exist.
+    if (userError && !user) {
+      console.error("onboarding: user lookup error", userError);
+      user = null as any;
+    }
 
     const profileJson = { primary_goal: profile.primary_goal, constraints: profile.constraints, interests: profile.interests, preference_summary: "" };
 

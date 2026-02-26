@@ -137,6 +137,12 @@ A task is done only when:
 - Rule: When the user needs to open a URL (e.g. local dev server, CMS, preview), run the relevant command yourself and tell them explicitly when to open the URL (e.g. "Server is running. Open http://localhost:3750/cco-report-cms.html in your browser.").
   Why: The user has asked repeatedly for the agent to run commands and indicate when to open the URL; doing it avoids back-and-forth.
 
+- Rule: Perform all terminal commands (build, lint, typecheck, push) when the user asks for minimal intervention or to "perform" commands. Only leave a step for the user when the environment cannot do it (e.g. git push requires their credentials).
+  Why: Reduces back-and-forth; user wants one-shot execution where possible.
+
+- Rule: When git push fails with "could not read Username" or similar auth error, tell the user exactly one manual step: run `git push origin main` from their machine, and that the commit is already created locally.
+  Why: They need to push once from an authenticated environment; no need to re-stage or re-commit.
+
 ---
 
 ## Final Instruction

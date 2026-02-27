@@ -1,8 +1,24 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { trendingRequests } from "@/data/trending-requests";
 import IdeaQuickActions from "@/components/IdeaQuickActions";
 import GetSimilarIdeas from "@/components/GetSimilarIdeas";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const req = trendingRequests.find((r) => r.slug === slug);
+  if (!req) return { title: "Not Found | IdeaPulse" };
+  return {
+    title: `${req.title} | IdeaPulse`,
+    description: req.teaser,
+    openGraph: {
+      title: req.title,
+      description: req.teaser,
+      images: [{ url: req.image, width: 600, height: 400, alt: req.title }],
+    },
+  };
+}
 
 export default async function TrendingRequestPage({
   params,

@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
 import Link from "next/link";
 import { curatedIdeas } from "@/data/curated-ideas";
+
+export const metadata: Metadata = {
+  title: "Top Ideas | IdeaPulse",
+  description: "Most liked business ideas by the community plus curated picks.",
+  openGraph: { title: "Top Ideas | IdeaPulse", description: "Most liked business ideas by the community plus curated picks." },
+};
 
 export const dynamic = "force-dynamic";
 

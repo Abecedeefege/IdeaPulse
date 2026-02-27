@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Pricing | IdeaPulse",
+  description: "Choose the plan that fits. Free, Pro, or Team.",
+  openGraph: { title: "Pricing | IdeaPulse", description: "Choose the plan that fits. Free, Pro, or Team." },
+};
 
 export default function PricingPage() {
   return (

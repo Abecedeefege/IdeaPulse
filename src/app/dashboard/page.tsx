@@ -37,8 +37,8 @@ export default async function DashboardPage() {
         batchIds.length > 0
           ? (batches ?? []).map((b) => ({ ...b, ideas: ideaList.filter((i) => i.batch_id === b.id) }))
           : [];
-    } catch {
-      // DB error — show empty
+    } catch (e) {
+      console.error("dashboard: failed to load batches", e);
     }
   }
 

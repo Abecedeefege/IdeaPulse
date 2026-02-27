@@ -30,7 +30,7 @@ export default async function TopIdeasPage() {
       <h1 className="text-3xl font-bold text-white mb-2">Top ideas</h1>
       <p className="text-zinc-400 mb-8">Most liked by the community + curated picks.</p>
       <ul className="space-y-4">
-        {allIdeas.map((item, idx) => {
+        {allIdeas.map((item) => {
           const j = item.idea_json as Record<string, unknown>;
           const title = String(j.title ?? "Idea");
           const hook = String(j.one_sentence_hook ?? "");

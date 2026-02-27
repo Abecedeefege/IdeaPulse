@@ -143,6 +143,9 @@ A task is done only when:
 - Rule: When git push fails with "could not read Username" or similar auth error, tell the user exactly one manual step: run `git push origin main` from their machine, and that the commit is already created locally.
   Why: They need to push once from an authenticated environment; no need to re-stage or re-commit.
 
+- Rule: Always run push commands when the user asks to push, deploy, or ship to production: run `git add -A`, `git commit` (if there are changes), then `git push origin main`. Do not skip the push step.
+  Why: The user expects the agent to perform all terminal commands including push; they asked to "always push commands."
+
 ---
 
 ## Final Instruction

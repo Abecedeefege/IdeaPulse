@@ -11,6 +11,23 @@ const BUDGET_OPTIONS = ["$0–100", "$100–500", "$500–2k", "$2k+"];
 const SKILL_TAGS = ["Engineering", "Design", "Marketing", "Sales", "Ops"];
 const RISK_OPTIONS = ["Low", "Medium", "High"];
 
+function IconTextPrompt({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+function IconSparkles({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  );
+}
+
 function OnboardingContent() {
   const router = useRouter();
   const [primaryGoal, setPrimaryGoal] = useState("");
@@ -40,13 +57,22 @@ function OnboardingContent() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Your preferences</h1>
-      <p className="text-zinc-400 text-sm">
-        Optional: tell us your goal and constraints so we can tailor your first 10 ideas. Or{" "}
-        <Link href="/signup?flow=random" className="text-violet-400 hover:text-violet-300 underline-offset-2">
-          get random ideas
-        </Link>{" "}
-        without filling the form.
+      <h1 className="text-2xl font-bold text-white">What do you want to create next</h1>
+      <p className="text-zinc-400 text-sm flex items-center gap-3 flex-wrap">
+        <span>Optional:</span>
+        <span className="inline-flex items-center gap-1.5 text-zinc-500" title="Text prompt">
+          <IconTextPrompt className="w-4 h-4" />
+          <span>Text prompt</span>
+        </span>
+        <span className="text-zinc-600">|</span>
+        <Link
+          href="/signup?flow=random"
+          className="inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 transition-colors"
+          title="Get random ideas"
+        >
+          <IconSparkles className="w-4 h-4" />
+          <span>Get random ideas</span>
+        </Link>
       </p>
 
       <form onSubmit={handleGetMyIdeas} className="space-y-6">

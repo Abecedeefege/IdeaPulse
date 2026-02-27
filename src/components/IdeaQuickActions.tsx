@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 type IdeaQuickActionsProps = {
   title: string;
@@ -76,13 +76,16 @@ export default function IdeaQuickActions({
 }: IdeaQuickActionsProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
-  const summary = [title, oneSentenceHook].filter(Boolean).join(". ");
-  const shareBlurb = shareText || summary;
-  const url = ideaUrl || (typeof window !== "undefined" ? window.location.href : "");
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareBlurb + (url ? " " + url : ""))}`;
-
-  const promptAiInsights = AI_INSIGHTS_PROMPT(title, oneSentenceHook, whyItCouldWork || summary);
-  const promptNoHuman = NO_HUMAN_PROMPT(title, oneSentenceHook, whyItCouldWork || summary, firstStepUnder30min || "Not specified.");
+  const { whatsappUrl, promptAiInsights, promptNoHuman } = useMemo(() => {
+    const summary = [title, oneSentenceHook].filter(Boolean).join(". ");
+    const shareBlurb = shareText || summary;
+    const url = ideaUrl || (typeof window !== "undefined" ? window.location.href : "");
+    return {
+      whatsappUrl: `https://wa.me/?text=${encodeURIComponent(shareBlurb + (url ? " " + url : ""))}`,
+      promptAiInsights: AI_INSIGHTS_PROMPT(title, oneSentenceHook, whyItCouldWork || summary),
+      promptNoHuman: NO_HUMAN_PROMPT(title, oneSentenceHook, whyItCouldWork || summary, firstStepUnder30min || "Not specified."),
+    };
+  }, [title, oneSentenceHook, whyItCouldWork, firstStepUnder30min, shareText, ideaUrl]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {

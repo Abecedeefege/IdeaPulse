@@ -16,20 +16,23 @@ export async function sendBatchEmail(
   ideas: IdeaRow[],
   userId: string
 ): Promise<void> {
-  const links: { ideaId: string; like: string; dislike: string; feedback: string; analyze: string }[] = [];
-  for (const row of ideas) {
-    const likeToken = await signActionPayload(row.id, "like", userId);
-    const dislikeToken = await signActionPayload(row.id, "dislike", userId);
-    const feedbackToken = await signActionPayload(row.id, "feedback", userId);
-    const analyzeToken = await signActionPayload(row.id, "analyze", userId);
-    links.push({
-      ideaId: row.id,
-      like: actionUrl(baseUrl, row.id, "like", userId, likeToken),
-      dislike: actionUrl(baseUrl, row.id, "dislike", userId, dislikeToken),
-      feedback: `${baseUrl}/api/idea/${row.id}/feedback?token=${encodeURIComponent(feedbackToken)}`,
-      analyze: `${baseUrl}/api/idea/${row.id}/analyze?token=${encodeURIComponent(analyzeToken)}`,
-    });
-  }
+  const links = await Promise.all(
+    ideas.map(async (row) => {
+      const [likeToken, dislikeToken, feedbackToken, analyzeToken] = await Promise.all([
+        signActionPayload(row.id, "like", userId),
+        signActionPayload(row.id, "dislike", userId),
+        signActionPayload(row.id, "feedback", userId),
+        signActionPayload(row.id, "analyze", userId),
+      ]);
+      return {
+        ideaId: row.id,
+        like: actionUrl(baseUrl, row.id, "like", userId, likeToken),
+        dislike: actionUrl(baseUrl, row.id, "dislike", userId, dislikeToken),
+        feedback: `${baseUrl}/api/idea/${row.id}/feedback?token=${encodeURIComponent(feedbackToken)}`,
+        analyze: `${baseUrl}/api/idea/${row.id}/analyze?token=${encodeURIComponent(analyzeToken)}`,
+      };
+    })
+  );
 
   const listHtml = ideas
     .map((row, i) => {

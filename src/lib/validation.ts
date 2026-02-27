@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const onboardingSchema = z.object({
-  email: z.string().email("Invalid email address").trim(),
+  email: z.string().trim().email("Invalid email address"),
   email_frequency: z.enum(["daily", "weekly"]).default("weekly"),
   profile: z.object({
     primary_goal: z.string().optional(),
@@ -37,7 +37,7 @@ export const feedbackSchema = z.object({
 });
 
 export const requestMoreSchema = z.object({
-  email: z.string().email("Invalid email address").trim(),
+  email: z.string().trim().email("Invalid email address"),
 });
 
 export const similarIdeasSchema = z.object({

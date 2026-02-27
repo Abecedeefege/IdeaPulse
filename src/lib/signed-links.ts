@@ -1,6 +1,13 @@
 import * as jose from "jose";
 
-const SECRET = process.env.ACTION_LINK_SECRET || "default-dev-secret-min-32-chars";
+function getSecret(): string {
+  const secret = process.env.ACTION_LINK_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("ACTION_LINK_SECRET must be set and at least 32 characters");
+  }
+  return secret;
+}
+
 const ALG = "HS256";
 const EXP = "7d";
 
@@ -9,7 +16,7 @@ export async function signActionPayload(
   action: "like" | "dislike" | "feedback" | "analyze",
   userId: string
 ): Promise<string> {
-  const secret = new TextEncoder().encode(SECRET);
+  const secret = new TextEncoder().encode(getSecret());
   return new jose.SignJWT({ ideaId, action, userId })
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
@@ -23,7 +30,7 @@ export async function verifyActionToken(token: string): Promise<{
   userId: string;
 } | null> {
   try {
-    const secret = new TextEncoder().encode(SECRET);
+    const secret = new TextEncoder().encode(getSecret());
     const { payload } = await jose.jwtVerify(token, secret, { algorithms: [ALG] });
     if (
       typeof payload.ideaId !== "string" ||

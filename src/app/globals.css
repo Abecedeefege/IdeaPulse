@@ -29,27 +29,27 @@ body {
   animation: lightbulb-fill 18s ease-out forwards;
 }
 
-@keyframes firehose-bulb {
+@keyframes fall-bulb {
   0% {
     opacity: 0;
-    transform: translate(-20px, -8px) scale(0.6);
+    transform: translateX(-50%) translateY(0) scale(0.5) rotate(-10deg);
   }
-  15% {
+  10% {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+    transform: translateX(-50%) translateY(10%) scale(0.9) rotate(0deg);
   }
-  85% {
-    opacity: 0.9;
-    transform: translate(40px, 24px) scale(0.95);
+  80% {
+    opacity: 0.8;
+    transform: translateX(-50%) translateY(90%) scale(1) rotate(5deg);
   }
   100% {
     opacity: 0;
-    transform: translate(56px, 32px) scale(0.85);
+    transform: translateX(-50%) translateY(110%) scale(0.9) rotate(10deg);
   }
 }
 
-.animate-firehose-bulb {
-  animation: firehose-bulb 2.2s ease-out infinite;
+.animate-fall-bulb {
+  animation: fall-bulb 2s ease-in infinite;
 }
 
 @keyframes firehose-progress {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import UsageBanner from "@/components/UsageBanner";
 import Logo from "@/components/Logo";
+import NavAuth from "@/components/NavAuth";
 
 export const metadata: Metadata = {
   title: "IdeaPulse",
@@ -17,6 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased min-h-screen bg-zinc-950 text-zinc-100">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:bg-violet-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">
+          Skip to content
+        </a>
         <header className="relative z-40 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <Logo />
@@ -24,12 +28,12 @@ export default function RootLayout({
               <a href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">Dashboard</a>
               <a href="/top-ideas" className="text-zinc-400 hover:text-white transition-colors">Top Ideas</a>
               <a href="/pricing" className="text-zinc-400 hover:text-white transition-colors">Pricing</a>
-              <a href="/profile" className="text-zinc-400 hover:text-white transition-colors">Profile</a>
+              <NavAuth />
             </nav>
           </div>
         </header>
         <UsageBanner />
-        <main className="max-w-4xl mx-auto px-4 py-8 text-zinc-100">{children}</main>
+        <main id="main-content" className="max-w-4xl mx-auto px-4 py-8 text-zinc-100">{children}</main>
         <footer className="border-t border-zinc-900 bg-zinc-950/80 mt-8">
           <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-zinc-500">
             <Logo showWordmark={false} className="opacity-90" />

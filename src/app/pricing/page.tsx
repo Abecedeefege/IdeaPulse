@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Pricing | IdeaPulse",
+  description: "Choose the plan that fits. Free, Pro, or Team.",
+  openGraph: { title: "Pricing | IdeaPulse", description: "Choose the plan that fits. Free, Pro, or Team." },
+};
 
 export default function PricingPage() {
   return (
@@ -21,7 +28,7 @@ export default function PricingPage() {
           <p className="text-2xl font-bold text-white mb-4">$9<span className="text-sm font-normal text-zinc-400">/mo</span></p>
           <p className="text-sm text-zinc-400 mb-4">Like/dislike, personalized suggestions, private ideas, deep analysis.</p>
           <Link href="/onboarding" className="block w-full text-center py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-500">
-            Subscribe
+            Get started
           </Link>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
@@ -29,7 +36,7 @@ export default function PricingPage() {
           <p className="text-2xl font-bold text-white mb-4">$29<span className="text-sm font-normal text-zinc-400">/mo</span></p>
           <p className="text-sm text-zinc-400 mb-4">Everything in Pro, shared workspace, team preferences.</p>
           <Link href="/onboarding" className="block w-full text-center py-2 rounded-xl border border-zinc-600 text-zinc-300 text-sm font-medium hover:border-zinc-500">
-            Contact us
+            Get started
           </Link>
         </div>
       </div>

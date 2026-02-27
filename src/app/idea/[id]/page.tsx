@@ -1,8 +1,28 @@
+import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import IdeaQuickActions from "@/components/IdeaQuickActions";
 import GetSimilarIdeas from "@/components/GetSimilarIdeas";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const db = supabaseServer();
+    const { data } = await db.from("ideas").select("idea_json").eq("id", id).single();
+    if (!data) return { title: "Idea | IdeaPulse" };
+    const j = data.idea_json as Record<string, unknown>;
+    const title = String(j.title ?? "Idea");
+    const hook = String(j.one_sentence_hook ?? "");
+    return {
+      title: `${title} | IdeaPulse`,
+      description: hook,
+      openGraph: { title, description: hook },
+    };
+  } catch {
+    return { title: "Idea | IdeaPulse" };
+  }
+}
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

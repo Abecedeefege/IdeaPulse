@@ -29,16 +29,15 @@ export default async function DashboardPage() {
       const batchIds = (batches ?? []).map((b) => b.id);
       const { data: ideas } =
         batchIds.length > 0
-          ? await db.from("ideas").select("id, batch_id, idea_json, created_at").in("batch_id", batchIds).order("created_at", { ascending: false })
+          ? await db.from("ideas").select("id, batch_id, idea_json, created_at").in("batch_id", batchIds).order("created_at", { ascending: false }).limit(20)
           : { data: [] };
 
-      const ideaList = (ideas ?? []).slice(0, 20);
       byBatch =
         batchIds.length > 0
-          ? (batches ?? []).map((b) => ({ ...b, ideas: ideaList.filter((i) => i.batch_id === b.id) }))
+          ? (batches ?? []).map((b) => ({ ...b, ideas: (ideas ?? []).filter((i) => i.batch_id === b.id) }))
           : [];
-    } catch {
-      // DB error — show empty
+    } catch (e) {
+      console.error("dashboard: failed to load batches", e);
     }
   }
 

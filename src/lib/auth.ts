@@ -1,16 +1,12 @@
 import { supabaseBrowser } from "@/lib/supabase";
 
-// In production, set NEXT_PUBLIC_APP_URL to your canonical URL so magic links do not point to localhost.
-export async function signInWithMagicLink(email: string) {
+export async function signInWithMagicLink(email: string, redirectPath?: string) {
   const supabase = supabaseBrowser();
+  const base = process.env.NEXT_PUBLIC_APP_URL;
+  const redirectTo = base ? `${base}${redirectPath || "/dashboard"}` : undefined;
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: {
-      emailRedirectTo: process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/profile`
-        : undefined,
-    },
+    options: { emailRedirectTo: redirectTo },
   });
   if (error) throw error;
 }
-

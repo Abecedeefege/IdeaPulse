@@ -1,35 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <linearGradient id="bulb-glow" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#a855f7" />
-      <stop offset="1" stop-color="#ec4899" />
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#fef3c7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.1"/>
     </linearGradient>
   </defs>
-  <rect x="3" y="3" width="26" height="26" rx="10" fill="#020617" />
-  <circle cx="16" cy="13" r="7" fill="url(#bulb-glow)" />
-  <path
-    d="M13 13.5a3 3 0 1 1 6 0c0 1.5-.7 2.4-1.4 3.1-.3.3-.6.6-.8 1a3.2 3.2 0 0 0-.3.8c-.1.3-.1.6-.1 1H15.5c0-.4 0-.7-.2-1a3.2 3.2 0 0 0-.3-.8c-.2-.4-.5-.7-.8-1-.7-.7-1.4-1.6-1.4-3.1Z"
-    fill="#020617"
-  />
-  <rect x="13.25" y="20" width="5.5" height="1.4" rx="0.7" fill="#e5e7eb" />
-  <rect x="13.75" y="22" width="4.5" height="1.4" rx="0.7" fill="#e5e7eb" />
-  <path
-    d="M16 6.5v-2"
-    stroke="#a855f7"
-    stroke-width="1.4"
-    stroke-linecap="round"
-  />
-  <path
-    d="M9.5 9 8 7.5"
-    stroke="#a855f7"
-    stroke-width="1.2"
-    stroke-linecap="round"
-  />
-  <path
-    d="M22.5 9 24 7.5"
-    stroke="#a855f7"
-    stroke-width="1.2"
-    stroke-linecap="round"
-  />
+  <rect width="32" height="32" rx="8" fill="#18181b"/>
+  <!-- Bulb glass -->
+  <ellipse cx="16" cy="12" rx="8" ry="9" fill="url(#glass)" stroke="#fbbf24" stroke-width="0.8" stroke-opacity="0.5"/>
+  <!-- Filament glow -->
+  <path d="M14 14 L16 8 L18 14" stroke="url(#glow)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <line x1="16" y1="8" x2="16" y2="6" stroke="#f59e0b" stroke-width="1" stroke-linecap="round"/>
+  <!-- Warm glow circle -->
+  <circle cx="16" cy="11" r="4" fill="#fbbf24" opacity="0.3"/>
+  <!-- Base/screw -->
+  <rect x="13" y="20" width="6" height="2" rx="1" fill="#a1a1aa"/>
+  <rect x="13.5" y="22.5" width="5" height="1.5" rx="0.75" fill="#a1a1aa"/>
+  <rect x="14" y="24.5" width="4" height="1.5" rx="0.75" fill="#a1a1aa"/>
+  <!-- Rays -->
+  <line x1="16" y1="1" x2="16" y2="3" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+  <line x1="7" y1="6" x2="9" y2="7.5" stroke="#fbbf24" stroke-width="0.8" stroke-linecap="round" opacity="0.4"/>
+  <line x1="25" y1="6" x2="23" y2="7.5" stroke="#fbbf24" stroke-width="0.8" stroke-linecap="round" opacity="0.4"/>
+  <line x1="5" y1="12" x2="7" y2="12" stroke="#fbbf24" stroke-width="0.8" stroke-linecap="round" opacity="0.3"/>
+  <line x1="27" y1="12" x2="25" y2="12" stroke="#fbbf24" stroke-width="0.8" stroke-linecap="round" opacity="0.3"/>
 </svg>
-

@@ -14,12 +14,26 @@ export default function LoginPage() {
     setStatus("loading");
     setMessage("");
     try {
-      await signInWithMagicLink(email.trim());
+      const checkRes = await fetch("/api/auth/check-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const checkData = await checkRes.json().catch(() => ({ exists: false }));
+      const isExisting = checkData.exists;
+
+      const redirectPath = isExisting ? "/dashboard" : "/profile";
+      await signInWithMagicLink(email.trim(), redirectPath);
+
       setStatus("done");
-      setMessage("Magic link sent. Check your email to log in.");
-    } catch (err: any) {
+      setMessage(
+        isExisting
+          ? "We sent you a login link. Check your email to access your dashboard."
+          : "Welcome! We sent you a signup link. Check your email to set up your profile."
+      );
+    } catch {
       setStatus("error");
-      setMessage(err?.message || "Failed to send magic link.");
+      setMessage("Failed to send email. Please try again.");
     }
   };
 
@@ -28,7 +42,7 @@ export default function LoginPage() {
       <div className="max-w-md mx-auto text-center space-y-6">
         <h1 className="text-2xl font-bold text-white">Check your email</h1>
         <p className="text-zinc-400">{message}</p>
-        <p className="text-sm text-zinc-500">Click the link we sent to log in. You can close this tab after.</p>
+        <p className="text-sm text-zinc-500">Click the link we sent to continue. You can close this tab after.</p>
         <FirehoseLoader show contained label="Waiting for you to click the link…" />
       </div>
     );
@@ -36,9 +50,9 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-4">Log in</h1>
+      <h1 className="text-2xl font-bold text-white mb-4">Log in / Sign up</h1>
       <p className="text-sm text-zinc-400 mb-6">
-        Enter your email and we&apos;ll send you a magic link to access your ideas and profile.
+        Enter your email. We&apos;ll send you a magic link — no password needed.
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -60,10 +74,9 @@ export default function LoginPage() {
           disabled={status === "loading"}
           className="w-full bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-xl font-medium disabled:opacity-50 transition-colors"
         >
-          {status === "loading" ? "Sending…" : "Send magic link"}
+          {status === "loading" ? "Sending…" : "Continue with email"}
         </button>
       </form>
     </div>
   );
 }
-

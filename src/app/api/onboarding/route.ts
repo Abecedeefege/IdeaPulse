@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
 import { sendMagicLinkServer } from "@/lib/auth-server";
+import { onboardingSchema } from "@/lib/validation";
 
 function checkEnv(): string | null {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase (add NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Vercel)";
@@ -17,23 +18,26 @@ export async function POST(req: Request) {
     if (envError) return NextResponse.json({ error: `Server not configured: ${envError}` }, { status: 503 });
 
     const body = await req.json();
-    const email = typeof body.email === "string" ? body.email.trim() : "";
-    const emailFrequency = body.email_frequency === "daily" ? "daily" : "weekly";
-    const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
+    const parsed = onboardingSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    }
 
-    if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+    const { email, email_frequency: emailFrequency, profile } = parsed.data;
 
     const db = supabaseServer();
-    let { data: user, error: userError } = await db
+    let user: { id: string; email: string; profile_json: unknown; unsubscribed_at: string | null } | null = null;
+
+    const { data: existingUser, error: userError } = await db
       .from("users")
       .select("id, email, profile_json, unsubscribed_at")
       .eq("email", email)
       .single();
 
-    // If lookup fails, log but continue as if user doesn't exist.
-    if (userError && !user) {
+    if (userError && !existingUser) {
       console.error("onboarding: user lookup error", userError);
-      user = null as any;
+    } else {
+      user = existingUser;
     }
 
     const profileJson = { primary_goal: profile.primary_goal, constraints: profile.constraints, interests: profile.interests, preference_summary: "" };
@@ -46,8 +50,9 @@ export async function POST(req: Request) {
         .single();
 
       if (insertError) {
-        // If a user with this email was just created (unique violation), load it and continue.
-        const code = (insertError as any).code;
+        const code = typeof insertError === "object" && insertError !== null && "code" in insertError
+          ? String((insertError as unknown as Record<string, unknown>).code)
+          : "";
         if (code === "23505" || code === "PGRST116") {
           const { data: existing } = await db
             .from("users")
@@ -63,12 +68,14 @@ export async function POST(req: Request) {
           console.error("onboarding: insert user error", insertError);
           return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
         }
-      } else {
+      } else if (newUser) {
         user = { id: newUser.id, email, profile_json: profileJson, unsubscribed_at: null };
       }
     } else {
       await db.from("users").update({ email_frequency: emailFrequency, profile_json: profileJson, unsubscribed_at: null, updated_at: new Date().toISOString() }).eq("id", user.id);
     }
+
+    if (!user) return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
 
     const userId = user.id;
     const today = new Date().toISOString().slice(0, 10);

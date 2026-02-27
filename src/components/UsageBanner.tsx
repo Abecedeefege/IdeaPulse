@@ -8,7 +8,13 @@ export default function UsageBanner() {
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
-      .then(setUsage)
+      .then((data) => {
+        if (data && typeof data.totalTokens === "number" && typeof data.totalCostUsd === "number") {
+          setUsage(data);
+        } else {
+          setUsage({ totalTokens: 0, totalCostUsd: 0 });
+        }
+      })
       .catch(() => setUsage({ totalTokens: 0, totalCostUsd: 0 }));
   }, []);
 
@@ -16,10 +22,8 @@ export default function UsageBanner() {
 
   return (
     <div className="text-center py-2 px-3 bg-zinc-900/50 border-b border-zinc-800 text-sm text-zinc-400">
-      <span className="font-medium">AI usage (project total):</span>{" "}
-      <span>{usage.totalTokens.toLocaleString()} tokens</span>
-      <span className="mx-2">|</span>
-      <span>Est. USD: ${usage.totalCostUsd.toFixed(4)}</span>
+      <span className="font-medium">Estimated cost:</span>{" "}
+      <span>${usage.totalCostUsd.toFixed(4)} USD</span>
     </div>
   );
 }

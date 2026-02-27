@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { getServerUser } from "@/lib/supabase-server";
 
-function checkEnv(): string | null {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase";
-  return null;
-}
+export async function GET() {
+  const authUser = await getServerUser();
+  if (!authUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
-export async function GET(req: Request) {
   try {
-    const envError = checkEnv();
-    if (envError) return NextResponse.json({ error: `Server not configured: ${envError}` }, { status: 503 });
-
-    const url = new URL(req.url);
-    const email = url.searchParams.get("email")?.trim();
-    if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
-
     const db = supabaseServer();
     const { data: user, error } = await db
       .from("users")
       .select("id, email, email_frequency, profile_json")
-      .eq("email", email)
+      .eq("email", authUser.email)
       .single();
 
     if (error || !user) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -37,16 +29,13 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  try {
-    const envError = checkEnv();
-    if (envError) return NextResponse.json({ error: `Server not configured: ${envError}` }, { status: 503 });
+  const authUser = await getServerUser();
+  if (!authUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
+  try {
     const body = await req.json();
-    const email = typeof body.email === "string" ? body.email.trim() : "";
     const emailFrequency = body.email_frequency === "daily" ? "daily" : "weekly";
     const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
-
-    if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
     const db = supabaseServer();
     const profileJson = {
@@ -59,13 +48,13 @@ export async function POST(req: Request) {
     const { data: existing } = await db
       .from("users")
       .select("id")
-      .eq("email", email)
+      .eq("email", authUser.email)
       .maybeSingle();
 
     if (!existing) {
       const { data: newUser, error: insertError } = await db
         .from("users")
-        .insert({ email, email_frequency: emailFrequency, profile_json: profileJson })
+        .insert({ email: authUser.email, email_frequency: emailFrequency, profile_json: profileJson })
         .select("id")
         .single();
       if (insertError || !newUser) return NextResponse.json({ error: "Failed to save profile" }, { status: 500 });
@@ -89,4 +78,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
-

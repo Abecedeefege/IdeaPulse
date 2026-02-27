@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 
 type Props = { ideaId: string };
 
-export default function IdeaLikeDislike({ ideaId }: Props) {
+export default memo(function IdeaLikeDislike({ ideaId }: Props) {
   const [loading, setLoading] = useState<"like" | "dislike" | null>(null);
 
   const act = async (type: "like" | "dislike") => {
@@ -32,7 +32,7 @@ export default function IdeaLikeDislike({ ideaId }: Props) {
         disabled={!!loading}
         className="text-sm text-zinc-400 hover:text-violet-400 disabled:opacity-50"
       >
-        {loading === "like" ? "…" : "👍 Like"}
+        {loading === "like" ? <span aria-label="Loading">…</span> : "👍 Like"}
       </button>
       <button
         type="button"
@@ -40,8 +40,8 @@ export default function IdeaLikeDislike({ ideaId }: Props) {
         disabled={!!loading}
         className="text-sm text-zinc-400 hover:text-violet-400 disabled:opacity-50"
       >
-        {loading === "dislike" ? "…" : "👎 Dislike"}
+        {loading === "dislike" ? <span aria-label="Loading">…</span> : "👎 Dislike"}
       </button>
     </div>
   );
-}
+});

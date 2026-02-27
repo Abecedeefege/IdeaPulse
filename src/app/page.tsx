@@ -33,7 +33,7 @@ export default function HomePage() {
               <div className="aspect-[16/10] relative bg-zinc-800 overflow-hidden">
                 <Image
                   src={req.image}
-                  alt=""
+                  alt={req.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

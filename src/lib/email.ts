@@ -39,38 +39,106 @@ export async function sendBatchEmail(
       const l = links[i];
       const j = row.idea_json as Record<string, unknown>;
       return `
-        <div style="margin-bottom: 24px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
-          <h3 style="margin: 0 0 8px 0;">${escapeHtml(String(j.title ?? "Idea"))}</h3>
-          <p style="margin: 0 0 8px 0; color: #4b5563;">${escapeHtml(String(j.one_sentence_hook ?? ""))}</p>
-          <p style="margin: 0 0 12px 0; font-size: 14px;"><strong>First step:</strong> ${escapeHtml(String(j.first_step_under_30min ?? ""))}</p>
-          <p style="margin: 0;">
-            <a href="${l.like}" style="margin-right: 8px;">👍 Like</a>
-            <a href="${l.dislike}" style="margin-right: 8px;">👎 Dislike</a>
-            <a href="${l.feedback}" style="margin-right: 8px;">💬 Feedback</a>
-            <a href="${l.analyze}" style="margin-right: 8px;">📊 Analyze</a>
-          </p>
-        </div>
-      `;
+        <tr>
+          <td style="padding: 0 0 20px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+              <tr>
+                <td style="padding: 20px;">
+                  <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #111827;">${escapeHtml(String(j.title ?? "Idea"))}</h3>
+                  <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px; line-height: 1.5;">${escapeHtml(String(j.one_sentence_hook ?? ""))}</p>
+                  <p style="margin: 0 0 12px 0; font-size: 13px; color: #9ca3af;"><strong style="color: #6b7280;">First step:</strong> ${escapeHtml(String(j.first_step_under_30min ?? ""))}</p>
+                  <p style="margin: 0; font-size: 13px;">
+                    <a href="${l.like}" style="color: #7c3aed; text-decoration: none; margin-right: 12px;">👍 Like</a>
+                    <a href="${l.dislike}" style="color: #7c3aed; text-decoration: none; margin-right: 12px;">👎 Dislike</a>
+                    <a href="${l.feedback}" style="color: #7c3aed; text-decoration: none; margin-right: 12px;">💬 Feedback</a>
+                    <a href="${l.analyze}" style="color: #7c3aed; text-decoration: none;">📊 Analyze</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
     })
     .join("");
 
+  const dashboardUrl = `${baseUrl}/dashboard`;
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe?email=${encodeURIComponent(to)}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <body style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-        <h1 style="margin: 0 0 16px 0;">Your 10 ideas</h1>
-        <p style="margin: 0 0 24px 0; color: #6b7280;">Click any link to react or open the idea on the site.</p>
-        ${listHtml}
-        <p style="margin-top: 32px; font-size: 12px; color: #9ca3af;">
-          <a href="${unsubscribeUrl}">Unsubscribe</a> from IdeaPulse emails.
-        </p>
-      </body>
-    </html>
-  `;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%); padding: 32px 24px; text-align: center;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">💡 IdeaPulse</h1>
+              <p style="margin: 8px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.85);">Your fresh batch of ideas is ready</p>
+            </td>
+          </tr>
+          <!-- Greeting -->
+          <tr>
+            <td style="padding: 32px 24px 16px 24px;">
+              <p style="margin: 0 0 16px 0; font-size: 16px; color: #374151; line-height: 1.6;">Hey there! 👋</p>
+              <p style="margin: 0 0 24px 0; font-size: 15px; color: #6b7280; line-height: 1.6;">We've generated <strong style="color: #374151;">10 tailored business ideas</strong> just for you. React to any idea below to help us learn your taste, or view them all on your dashboard.</p>
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 0 0 28px 0;">
+                    <a href="${dashboardUrl}" style="display: inline-block; background: #7c3aed; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; letter-spacing: -0.2px;">Check out your ideas →</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Ideas list -->
+          <tr>
+            <td style="padding: 0 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                ${listHtml}
+              </table>
+            </td>
+          </tr>
+          <!-- Secondary CTA -->
+          <tr>
+            <td style="padding: 16px 24px 32px 24px;" align="center">
+              <a href="${dashboardUrl}" style="display: inline-block; background: #7c3aed; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600;">View all on dashboard →</a>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #9ca3af;">Like or dislike ideas so we can tailor the next batch to you.</p>
+              <p style="margin: 0; font-size: 12px; color: #d1d5db;">
+                <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a> from IdeaPulse emails
+              </p>
+            </td>
+          </tr>
+        </table>
+        <!-- Brand footer -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px;">
+          <tr>
+            <td style="padding: 24px; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">💡 IdeaPulse — Spark one lightbulb moment at a time.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
   try {
-    await getResend().emails.send({ from, to: [to], subject: "Your 10 ideas from IdeaPulse", html });
+    await getResend().emails.send({
+      from,
+      to: [to],
+      subject: "💡 Your 10 fresh ideas from IdeaPulse",
+      html,
+    });
   } catch (e) {
     console.error("sendBatchEmail: Resend send failed", e);
     throw e;

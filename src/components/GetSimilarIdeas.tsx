@@ -3,7 +3,10 @@
 import { useState } from "react";
 import type { IdeaJson } from "@/types";
 import FirehoseLoader from "@/components/FirehoseLoader";
+import IdeaLikeDislike from "@/components/IdeaLikeDislike";
 import Link from "next/link";
+
+type SimilarIdea = IdeaJson & { _savedId?: string | null };
 
 type Props =
   | { seedIdea: IdeaJson | Record<string, unknown>; context?: never }
@@ -11,7 +14,7 @@ type Props =
 
 export default function GetSimilarIdeas(props: Props) {
   const [loading, setLoading] = useState(false);
-  const [ideas, setIdeas] = useState<IdeaJson[] | null>(null);
+  const [ideas, setIdeas] = useState<SimilarIdea[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSimilar = async () => {
@@ -30,7 +33,7 @@ export default function GetSimilarIdeas(props: Props) {
         setError(data.error || `Error ${res.status}`);
         return;
       }
-      setIdeas((data.ideas || []) as IdeaJson[]);
+      setIdeas((data.ideas || []) as SimilarIdea[]);
     } catch {
       setError("Network error");
     } finally {
@@ -55,30 +58,48 @@ export default function GetSimilarIdeas(props: Props) {
         </>
       ) : (
         <>
-          <p className="text-zinc-400 text-sm mb-4">React to ideas to improve the following batch</p>
-          <ul className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-            {ideas.map((idea, idx) => (
-              <li
-                key={idx}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 transition-colors"
-              >
-                <h3 className="font-semibold text-white">{idea.title}</h3>
-                <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{idea.one_sentence_hook}</p>
-                <p className="text-xs text-zinc-500 mt-2">
-                  Difficulty: {String(idea.difficulty_1_to_5 ?? "—")}/5
-                </p>
-                <p className="text-xs text-zinc-500 mt-1">First step: {idea.first_step_under_30min}</p>
-              </li>
-            ))}
+          <p className="text-zinc-400 text-sm mb-4">React to ideas to improve the next batch</p>
+          <ul className="space-y-3">
+            {ideas.map((idea, idx) => {
+              const hasLink = !!idea._savedId;
+              const content = (
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-white">{idea.title}</h3>
+                    <p className="text-sm text-zinc-400 mt-1">{idea.one_sentence_hook}</p>
+                    <p className="text-xs text-zinc-500 mt-2">
+                      Difficulty: {String(idea.difficulty_1_to_5 ?? "—")}/5
+                    </p>
+                  </div>
+                  {hasLink && (
+                    <span className="shrink-0 text-xs text-violet-400 mt-1">View →</span>
+                  )}
+                </div>
+              );
+
+              return (
+                <li
+                  key={idea._savedId || idx}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 transition-colors"
+                >
+                  {hasLink ? (
+                    <Link href={`/idea/${idea._savedId}`} className="block p-4">
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className="p-4">{content}</div>
+                  )}
+                  <div className="px-4 pb-3 pt-0">
+                    {idea._savedId ? (
+                      <IdeaLikeDislike ideaId={idea._savedId} />
+                    ) : (
+                      <p className="text-xs text-zinc-600">Log in to react to ideas</p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
-          <div className="mt-6">
-            <Link
-              href="/signup"
-              className="inline-block bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-            >
-              Get more ideas like these
-            </Link>
-          </div>
         </>
       )}
     </div>

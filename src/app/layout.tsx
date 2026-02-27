@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import UsageBanner from "@/components/UsageBanner";
 import Logo from "@/components/Logo";
+import NavAuth from "@/components/NavAuth";
 
 export const metadata: Metadata = {
   title: "IdeaPulse",
@@ -27,7 +28,7 @@ export default function RootLayout({
               <a href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">Dashboard</a>
               <a href="/top-ideas" className="text-zinc-400 hover:text-white transition-colors">Top Ideas</a>
               <a href="/pricing" className="text-zinc-400 hover:text-white transition-colors">Pricing</a>
-              <a href="/profile" className="text-zinc-400 hover:text-white transition-colors">Profile</a>
+              <NavAuth />
             </nav>
           </div>
         </header>

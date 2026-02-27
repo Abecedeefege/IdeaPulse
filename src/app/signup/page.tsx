@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FirehoseLoader from "@/components/FirehoseLoader";
@@ -9,7 +9,9 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [bgError, setBgError] = useState("");
   const searchParams = useSearchParams();
+  const submittedEmail = useRef("");
 
   const buildProfile = () => {
     const profile: { primary_goal?: string; constraints?: Record<string, string>; interests?: string[] } = {};
@@ -20,60 +22,42 @@ function SignupForm() {
     const risk = searchParams.get("risk_tolerance");
     const interestsParam = searchParams.get("interests");
     if (goal) profile.primary_goal = goal;
-    if (time) {
-      profile.constraints = profile.constraints ?? {};
-      profile.constraints["time_per_week"] = time;
-    }
-    if (budget) {
-      profile.constraints = profile.constraints ?? {};
-      profile.constraints["budget"] = budget;
-    }
-    if (skills) {
-      profile.constraints = profile.constraints ?? {};
-      profile.constraints["skills"] = skills;
-    }
-    if (risk) {
-      profile.constraints = profile.constraints ?? {};
-      profile.constraints["risk_tolerance"] = risk;
-    }
+    if (time) { profile.constraints = profile.constraints ?? {}; profile.constraints["time_per_week"] = time; }
+    if (budget) { profile.constraints = profile.constraints ?? {}; profile.constraints["budget"] = budget; }
+    if (skills) { profile.constraints = profile.constraints ?? {}; profile.constraints["skills"] = skills; }
+    if (risk) { profile.constraints = profile.constraints ?? {}; profile.constraints["risk_tolerance"] = risk; }
     if (interestsParam) profile.interests = interestsParam.split(",").filter(Boolean);
     return Object.keys(profile).length ? profile : undefined;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("loading");
-    setMessage("");
+    submittedEmail.current = email.trim();
+    setStatus("done");
+    setMessage("We're generating your 10 ideas and sending them to your inbox. This may take a moment.");
+    setBgError("");
+
     try {
       const profile = buildProfile();
       const flow = searchParams.get("flow");
       const summaryProfile = profile && typeof profile === "object"
-        ? {
-            primary_goal: profile.primary_goal,
-            constraints: profile.constraints,
-            interests: profile.interests,
-          }
+        ? { primary_goal: profile.primary_goal, constraints: profile.constraints, interests: profile.interests }
         : {};
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
+          email: submittedEmail.current,
           email_frequency: "weekly",
           profile: flow === "random" ? {} : summaryProfile,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setStatus("error");
-        setMessage(data.error || "Something went wrong.");
-        return;
+        setBgError(data.error || "Something went wrong generating your ideas.");
       }
-      setStatus("done");
-      setMessage(data.message || "Check your email for a login link; we're generating your ideas.");
     } catch {
-      setStatus("error");
-      setMessage("Network error. Try again.");
+      setBgError("Network error. Your ideas may still be processing — check your email.");
     }
   };
 
@@ -82,8 +66,13 @@ function SignupForm() {
       <div className="max-w-md mx-auto text-center space-y-6">
         <h1 className="text-2xl font-bold text-white">Check your email</h1>
         <p className="text-zinc-400">{message}</p>
-        <p className="text-sm text-zinc-500">Click the link to see your first batch of ideas. You can close this tab after.</p>
-        <FirehoseLoader show contained label="Waiting for you to click the link…" />
+        <p className="text-sm text-zinc-500">
+          We sent a link to <strong className="text-zinc-300">{submittedEmail.current}</strong>. Click it to see your ideas.
+        </p>
+        <FirehoseLoader show contained label="Generating your ideas…" />
+        {bgError && (
+          <p className="text-red-400 text-sm mt-4">{bgError}</p>
+        )}
       </div>
     );
   }
@@ -114,13 +103,10 @@ function SignupForm() {
           disabled={status === "loading"}
           className="w-full bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-xl font-medium disabled:opacity-50 transition-colors"
         >
-          {status === "loading" ? "Generating your ideas…" : "Get my ideas"}
+          Get my ideas
         </button>
         <p className="text-center">
-          <Link
-            href="/top-ideas"
-            className="text-sm text-zinc-400 hover:text-violet-400 transition-colors"
-          >
+          <Link href="/top-ideas" className="text-sm text-zinc-400 hover:text-violet-400 transition-colors">
             See trending ideas
           </Link>
         </p>

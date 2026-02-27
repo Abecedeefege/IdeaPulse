@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
       if (insertError) {
         const code = typeof insertError === "object" && insertError !== null && "code" in insertError
-          ? String((insertError as Record<string, unknown>).code)
+          ? String((insertError as unknown as Record<string, unknown>).code)
           : "";
         if (code === "23505" || code === "PGRST116") {
           const { data: existing } = await db

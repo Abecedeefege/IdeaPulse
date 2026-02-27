@@ -8,7 +8,14 @@ export default function UsageBanner() {
   useEffect(() => {
     fetch("/api/usage")
       .then((r) => r.json())
-      .then(setUsage)
+      .then((data) => {
+        // Handle error responses from API
+        if (data && typeof data.totalTokens === 'number' && typeof data.totalCostUsd === 'number') {
+          setUsage(data);
+        } else {
+          setUsage({ totalTokens: 0, totalCostUsd: 0 });
+        }
+      })
       .catch(() => setUsage({ totalTokens: 0, totalCostUsd: 0 }));
   }, []);
 

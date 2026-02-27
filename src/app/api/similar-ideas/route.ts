@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { generateIdeas, logRequest } from "@/lib/openai";
+import { similarIdeasSchema } from "@/lib/validation";
 
 const EXAMPLE_COOKIE_NAME = "example_ideas_count";
 const FREE_QUOTA_LIMIT = 1000;
@@ -24,23 +25,23 @@ export async function POST(req: Request) {
     const current = parseInt(cookieStore.get(EXAMPLE_COOKIE_NAME)?.value ?? "0", 10) || 0;
     if (current >= FREE_QUOTA_LIMIT) {
       return NextResponse.json(
-        {
-          error:
-            "You've used your free ideas. Sign up or log in to get more.",
-        },
+        { error: "You've used your free ideas. Sign up or log in to get more." },
         { status: 403 }
       );
     }
 
-    let summary: string;
     const body = await req.json().catch(() => ({}));
-    if (body.seedIdea && typeof body.seedIdea === "object") {
-      const s = body.seedIdea as { title?: string; one_sentence_hook?: string; why_it_could_work?: string };
+    const parsed = similarIdeasSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    }
+
+    let summary: string;
+    if (parsed.data.seedIdea) {
+      const s = parsed.data.seedIdea;
       summary = `Generate 10 ideas similar in theme and audience to this: ${[s.title, s.one_sentence_hook, s.why_it_could_work].filter(Boolean).join(". ")}`;
-    } else if (typeof body.context === "string" && body.context.trim()) {
-      summary = body.context.trim();
     } else {
-      return NextResponse.json({ error: "Provide seedIdea or context in body" }, { status: 400 });
+      summary = parsed.data.context!.trim();
     }
 
     const { ideas, usage } = await generateIdeas(summary, 10);

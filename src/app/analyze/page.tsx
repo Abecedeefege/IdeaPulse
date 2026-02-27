@@ -2,10 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
+import ReactMarkdown from "react-markdown";
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
@@ -47,12 +44,9 @@ function AnalyzeContent() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6">Business analysis</h1>
-      <article
-        className="prose prose-invert prose-zinc max-w-none"
-        dangerouslySetInnerHTML={{
-          __html: analysisMd ? analysisMd.split("\n").map((line) => (line.startsWith("## ") ? `<h2>${escapeHtml(line.slice(3))}</h2>` : `<p>${escapeHtml(line)}</p>`)).join("") : "",
-        }}
-      />
+      <article className="prose prose-invert prose-zinc max-w-none">
+        <ReactMarkdown>{analysisMd ?? ""}</ReactMarkdown>
+      </article>
     </div>
   );
 }

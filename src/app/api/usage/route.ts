@@ -14,7 +14,8 @@ export async function GET() {
       totalCost += Number(r.cost_est ?? 0);
     }
     return NextResponse.json({ totalTokens, totalCostUsd: Math.round(totalCost * 10000) / 10000 });
-  } catch {
-    return NextResponse.json({ totalTokens: 0, totalCostUsd: 0 });
+  } catch (e) {
+    console.error("usage GET", e);
+    return NextResponse.json({ error: "Failed to load usage" }, { status: 500 });
   }
 }

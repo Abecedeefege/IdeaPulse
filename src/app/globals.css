@@ -64,3 +64,22 @@ body {
 .animate-firehose-progress {
   animation: firehose-progress 10s ease-out forwards;
 }
+
+@keyframes bulb-dance {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) rotate(-5deg) scale(1.05);
+  }
+  50% {
+    transform: translateY(4px) rotate(5deg) scale(0.98);
+  }
+  75% {
+    transform: translateY(-4px) rotate(3deg) scale(1.02);
+  }
+}
+
+.animate-bulb-dance {
+  animation: bulb-dance 2.5s ease-in-out infinite;
+}

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const onboardingSchema = z.object({
   email: z.string().trim().email("Invalid email address"),
   email_frequency: z.enum(["daily", "weekly"]).default("weekly"),
+  context: z.string().trim().optional(),
   profile: z.object({
     primary_goal: z.string().optional(),
     constraints: z.object({

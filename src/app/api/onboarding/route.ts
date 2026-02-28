@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
     }
 
-    const { email, email_frequency: emailFrequency, profile } = parsed.data;
+    const { email, email_frequency: emailFrequency, profile, context: contextInput } = parsed.data;
 
     const db = supabaseServer();
     let user: { id: string; email: string; profile_json: unknown; unsubscribed_at: string | null } | null = null;
@@ -82,7 +82,9 @@ export async function POST(req: Request) {
     const { count } = await db.from("idea_batches").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("scheduled_for_date", today);
     if (count != null && count >= 1) return NextResponse.json({ ok: true, message: "You're already set up. Check your inbox or dashboard." });
 
-    const summary = [profileJson.preference_summary, profileJson.primary_goal, Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
+    const summary = (contextInput && contextInput.trim())
+      ? contextInput.trim()
+      : [profileJson.preference_summary, profileJson.primary_goal, Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
     const { ideas, usage } = await generateIdeas(summary, 10);
     await logRequest({ userId, kind: "generate_ideas", model: process.env.OPENAI_MODEL_FAST, tokensIn: usage.prompt, tokensOut: usage.completion, costEst: usage.costEst });
 
@@ -95,7 +97,16 @@ export async function POST(req: Request) {
 
     const { data: savedIdeas } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
     await sendBatchEmail(email, savedIdeas ?? [], userId);
-    sendMagicLinkServer(email).catch((e) => console.error("onboarding: magic link", e));
+    const magicResult = await sendMagicLinkServer(email);
+    if (!magicResult.ok && magicResult.error === "APP_URL_NOT_SET") {
+      return NextResponse.json(
+        { error: "Email is not configured for this environment. Please try again later or contact support." },
+        { status: 503 }
+      );
+    }
+    if (!magicResult.ok) {
+      console.error("onboarding: magic link failed", magicResult.error);
+    }
     return NextResponse.json({ ok: true, message: "Check your inbox for your first batch of ideas." });
   } catch (e) {
     console.error("onboarding", e);

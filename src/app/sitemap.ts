@@ -2,9 +2,19 @@ import type { MetadataRoute } from "next";
 import { trendingRequests } from "@/data/trending-requests";
 import { curatedIdeas } from "@/data/curated-ideas";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const LOCALHOST_PATTERN = /^https?:\/\/localhost(:\d+)?(\/|$)/i;
+function getBaseUrl(): string {
+  const u = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (process.env.NODE_ENV === "production") {
+    if (!u || LOCALHOST_PATTERN.test(u)) return "";
+    return u;
+  }
+  return u || "http://localhost:3000";
+}
+const BASE_URL = getBaseUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (!BASE_URL) return [];
   const staticPages = [
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 1 },
     { url: `${BASE_URL}/pricing`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 },

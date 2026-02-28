@@ -22,6 +22,9 @@ export default function UsageBanner() {
 
   return (
     <div className="text-center py-2 px-3 bg-zinc-900/50 border-b border-zinc-800 text-sm text-zinc-400">
+      <span className="font-medium">Estimated tokens:</span>{" "}
+      <span>{usage.totalTokens.toLocaleString()}</span>
+      <span className="mx-2 text-zinc-600">•</span>
       <span className="font-medium">Estimated cost:</span>{" "}
       <span>${usage.totalCostUsd.toFixed(4)} USD</span>
     </div>

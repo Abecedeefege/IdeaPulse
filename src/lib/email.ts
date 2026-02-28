@@ -7,7 +7,20 @@ function getResend(): Resend {
   return _resend;
 }
 const from = process.env.EMAIL_FROM || "IdeaPulse <onboarding@resend.dev>";
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+const LOCALHOST_PATTERN = /^https?:\/\/localhost(:\d+)?(\/|$)/i;
+
+function getBaseUrl(): string {
+  const u = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (process.env.NODE_ENV === "production") {
+    if (!u || LOCALHOST_PATTERN.test(u)) {
+      console.error("email: NEXT_PUBLIC_APP_URL missing or localhost in production; cannot build email links");
+      throw new Error("NEXT_PUBLIC_APP_URL must be set in production");
+    }
+    return u;
+  }
+  return u || "http://localhost:3000";
+}
 
 type IdeaRow = { id: string; idea_json: Record<string, unknown> };
 
@@ -16,6 +29,7 @@ export async function sendBatchEmail(
   ideas: IdeaRow[],
   userId: string
 ): Promise<void> {
+  const baseUrl = getBaseUrl();
   const links = await Promise.all(
     ideas.map(async (row) => {
       const [likeToken, dislikeToken, feedbackToken, analyzeToken] = await Promise.all([

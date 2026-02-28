@@ -1,6 +1,15 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const LOCALHOST_PATTERN = /^https?:\/\/localhost(:\d+)?(\/|$)/i;
+function getBaseUrl(): string {
+  const u = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (process.env.NODE_ENV === "production") {
+    if (!u || LOCALHOST_PATTERN.test(u)) return "";
+    return u;
+  }
+  return u || "http://localhost:3000";
+}
+const BASE_URL = getBaseUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,6 +18,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/debug/", "/loading"],
     },
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    ...(BASE_URL ? { sitemap: `${BASE_URL}/sitemap.xml` } : {}),
   };
 }

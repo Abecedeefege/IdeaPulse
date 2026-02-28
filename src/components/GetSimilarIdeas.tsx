@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import type { IdeaJson } from "@/types";
 import FirehoseLoader from "@/components/FirehoseLoader";
 import IdeaLikeDislike from "@/components/IdeaLikeDislike";
-import Link from "next/link";
 
 type SimilarIdea = IdeaJson & { _savedId?: string | null };
 
@@ -16,11 +17,18 @@ export default function GetSimilarIdeas(props: Props) {
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState<SimilarIdea[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pathname = usePathname();
 
   const fetchSimilar = async () => {
-    setLoading(true);
     setError(null);
     setIdeas(null);
+    const meRes = await fetch("/api/me", { credentials: "include" });
+    if (meRes.status === 401) {
+      const redirect = pathname ? `/login?redirect=${encodeURIComponent(pathname)}` : "/login";
+      window.location.href = redirect;
+      return;
+    }
+    setLoading(true);
     try {
       const body = props.seedIdea ? { seedIdea: props.seedIdea } : { context: props.context };
       const res = await fetch("/api/similar-ideas", {

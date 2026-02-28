@@ -43,14 +43,17 @@ function SignupForm() {
       const summaryProfile = profile && typeof profile === "object"
         ? { primary_goal: profile.primary_goal, constraints: profile.constraints, interests: profile.interests }
         : {};
+      const contextParam = searchParams.get("context");
+      const body: { email: string; email_frequency: string; profile: object; context?: string } = {
+        email: submittedEmail.current,
+        email_frequency: "weekly",
+        profile: flow === "random" ? {} : summaryProfile,
+      };
+      if (contextParam && contextParam.trim()) body.context = contextParam.trim();
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: submittedEmail.current,
-          email_frequency: "weekly",
-          profile: flow === "random" ? {} : summaryProfile,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

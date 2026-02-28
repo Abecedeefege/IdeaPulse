@@ -26,4 +26,18 @@ All required tables will be created. You can confirm in **Table Editor** (users,
 
 3. **Deployments** → **Redeploy** latest so env vars are applied.
 
+## 3. Supabase Auth (magic links and redirects)
+
+For login/signup magic-link emails to work in production:
+
+1. In **Supabase Dashboard** → **Authentication** → **URL Configuration**:
+   - Set **Site URL** to your production URL (same as `NEXT_PUBLIC_APP_URL`, e.g. `https://idea-pulse-chi.vercel.app`).
+   - Under **Redirect URLs**, add:
+     - `https://<your-app>/loading`
+     - `https://<your-app>/profile`
+     - `https://<your-app>/dashboard`
+   - Do not rely on `http://localhost:*` in production.
+
+2. Ensure **Vercel** has `NEXT_PUBLIC_APP_URL` set to that same production URL in the production environment (and optionally in Preview with the preview URL). If this is missing or set to localhost, magic links will not be sent and the app will return an error.
+
 Done. The site will work once these are set and the migration has been run.

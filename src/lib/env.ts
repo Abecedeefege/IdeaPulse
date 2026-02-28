@@ -27,7 +27,16 @@ function loadEnv(): Env {
     console.error(`[env] Invalid environment variables:\n${formatted}`);
     throw new Error(`Invalid environment variables:\n${formatted}`);
   }
-  return result.data;
+  const data = result.data;
+  if (process.env.NODE_ENV === "production") {
+    const u = data.NEXT_PUBLIC_APP_URL;
+    if (!u || u === "http://localhost:3000" || u.startsWith("http://localhost:")) {
+      throw new Error(
+        "NEXT_PUBLIC_APP_URL must be set to your production URL (e.g. https://idea-pulse-chi.vercel.app) in production. Do not use localhost."
+      );
+    }
+  }
+  return data;
 }
 
 export const env = loadEnv();

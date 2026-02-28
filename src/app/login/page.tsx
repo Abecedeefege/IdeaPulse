@@ -31,9 +31,10 @@ export default function LoginPage() {
           ? "We sent you a login link. Check your email to access your dashboard."
           : "Welcome! We sent you a signup link. Check your email to set up your profile."
       );
-    } catch {
+    } catch (err) {
       setStatus("error");
-      setMessage("Failed to send email. Please try again.");
+      const msg = err instanceof Error && err.message.toLowerCase().includes("url") ? "Service misconfigured. Please try again later." : "Failed to send email. Please try again.";
+      setMessage(msg);
     }
   };
 

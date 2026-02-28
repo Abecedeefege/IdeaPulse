@@ -42,29 +42,32 @@ export default async function TopIdeasPage() {
           const title = String(j.title ?? "Idea");
           const hook = String(j.one_sentence_hook ?? "");
           const isCurated = item.type === "curated";
+          // Idea detail page: quick actions and Get similar ideas live here
           const link = isCurated ? `/idea/curated/${(item as { slug: string }).slug}` : `/idea/${(item as { id: string }).id}`;
           const category = isCurated ? (item as { category: string }).category : null;
           return (
-            <li key={isCurated ? (item as { slug: string }).slug : (item as { id: string }).id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 transition-colors">
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {category && (
-                      <span className="text-xs font-medium text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded">
-                        {category}
-                      </span>
-                    )}
-                    {!isCurated && (item as { likeCount: number }).likeCount > 0 && (
-                      <span className="text-xs text-zinc-500">👍 {(item as { likeCount: number }).likeCount}</span>
-                    )}
+            <li key={isCurated ? (item as { slug: string }).slug : (item as { id: string }).id}>
+              <Link href={link} className="group block rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 transition-colors">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {category && (
+                        <span className="text-xs font-medium text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded">
+                          {category}
+                        </span>
+                      )}
+                      {!isCurated && (item as { likeCount: number }).likeCount > 0 && (
+                        <span className="text-xs text-zinc-500">👍 {(item as { likeCount: number }).likeCount}</span>
+                      )}
+                    </div>
+                    <h2 className="font-semibold text-white mt-1">{title}</h2>
+                    <p className="text-sm text-zinc-400 mt-0.5 line-clamp-2">{hook}</p>
                   </div>
-                  <h2 className="font-semibold text-white mt-1">{title}</h2>
-                  <p className="text-sm text-zinc-400 mt-0.5 line-clamp-2">{hook}</p>
+                  <span className="shrink-0 text-sm font-medium text-violet-400 group-hover:text-violet-300 transition-colors">
+                    View →
+                  </span>
                 </div>
-                <Link href={link} className="shrink-0 text-sm font-medium text-violet-400 hover:text-violet-300 transition-colors">
-                  View →
-                </Link>
-              </div>
+              </Link>
             </li>
           );
         })}

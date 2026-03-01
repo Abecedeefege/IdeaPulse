@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   try {
     const authUser = await getServerUser();
     if (!authUser) {
-      return NextResponse.json({ error: "Sign in to get similar ideas." }, { status: 401 });
+      return NextResponse.json({ error: "Session unavailable. Refresh and try again." }, { status: 401 });
     }
 
     const envError = checkEnv();
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const db = supabaseServer();
     const { data: appUser } = await db.from("users").select("id, profile_json").eq("email", authUser.email).single();
     if (!appUser) {
-      return NextResponse.json({ error: "Sign in to get similar ideas." }, { status: 401 });
+      return NextResponse.json({ error: "Session unavailable. Refresh and try again." }, { status: 401 });
     }
 
     const today = new Date().toISOString().slice(0, 10);

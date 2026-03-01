@@ -33,13 +33,16 @@ export default function ProfilePage() {
     fetch("/api/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
-          router.push("/login");
+          setLoading(false);
           return null;
         }
         return res.json();
       })
       .then((data) => {
-        if (!data?.email) return;
+        if (!data?.email) {
+          setLoading(false);
+          return;
+        }
         setIsLoggedIn(true);
         setEmailFrequency(data.email_frequency === "daily" ? "daily" : "weekly");
         const p = data.profile || {};
@@ -61,7 +64,7 @@ export default function ProfilePage() {
         setLoading(false);
       })
       .catch(() => {
-        router.push("/login");
+        setLoading(false);
       });
   }, [router]);
 

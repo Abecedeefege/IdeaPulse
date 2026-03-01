@@ -41,33 +41,14 @@ export default async function DashboardPage() {
     }
   }
 
-  if (!authUser) {
-    return (
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-6">Dashboard</h1>
-        <p className="text-zinc-400 mb-6">
-          Log in or sign up to see your ideas and batches.
-        </p>
-        <div className="flex gap-4">
-          <Link href="/login" className="text-violet-400 hover:text-violet-300 font-medium">
-            Log in
-          </Link>
-          <Link href="/signup" className="text-violet-400 hover:text-violet-300 font-medium">
-            Sign up
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <h1 className="text-3xl font-bold text-white mb-6">Dashboard</h1>
       <RequestMoreForm />
-      <p className="text-zinc-400 mb-6">Your latest batches. Sign up with your email in onboarding to receive ideas.</p>
+      <p className="text-zinc-400 mb-6">Your latest batches.</p>
       {byBatch.length === 0 ? (
         <p className="text-zinc-500">
-          No batches yet. <Link href="/signup" className="text-violet-400 hover:text-violet-300">Sign up</Link> to get your first 10 ideas.
+          No batches yet. Request your first 10 ideas above.
         </p>
       ) : (
         <div className="space-y-8">

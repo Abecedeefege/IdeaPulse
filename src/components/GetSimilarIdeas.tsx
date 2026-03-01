@@ -23,9 +23,8 @@ export default function GetSimilarIdeas(props: Props) {
     setError(null);
     setIdeas(null);
     const meRes = await fetch("/api/me", { credentials: "include" });
-    if (meRes.status === 401) {
-      const redirect = pathname ? `/login?redirect=${encodeURIComponent(pathname)}` : "/login";
-      window.location.href = redirect;
+    if (!meRes.ok) {
+      setError("Session unavailable. Refresh the page and try again.");
       return;
     }
     setLoading(true);
@@ -101,7 +100,7 @@ export default function GetSimilarIdeas(props: Props) {
                     {idea._savedId ? (
                       <IdeaLikeDislike ideaId={idea._savedId} />
                     ) : (
-                      <p className="text-xs text-zinc-600">Log in to react to ideas</p>
+                      <p className="text-xs text-zinc-600">Like or dislike to improve recommendations</p>
                     )}
                   </div>
                 </li>

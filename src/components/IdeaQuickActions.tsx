@@ -137,7 +137,7 @@ export default function IdeaQuickActions({
           Suggest related ideas
         </button>
       ) : (
-        <a href="/signup" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-violet-400 transition-colors">
+        <a href="/dashboard" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-violet-400 transition-colors">
           <IconSuggest className={iconSize} />
           Suggest related ideas
         </a>

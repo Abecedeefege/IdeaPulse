@@ -26,7 +26,7 @@ export async function POST() {
       return NextResponse.json(
         {
           error:
-            "You've used your free ideas. Sign up or log in to get more.",
+            "You've reached the quota for now. Try again later.",
         },
         { status: 403 }
       );

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const db = supabaseServer();
     const { data: user, error: userError } = await db.from("users").select("id, email, profile_json, unsubscribed_at").eq("email", email).single();
-    if (userError || !user) return NextResponse.json({ error: "No account found with this email. Sign up via Onboarding first." }, { status: 404 });
+    if (userError || !user) return NextResponse.json({ error: "No account found for this email. Ensure the user exists in the database." }, { status: 404 });
     if (user.unsubscribed_at) return NextResponse.json({ error: "This email has unsubscribed." }, { status: 400 });
 
     const today = new Date().toISOString().slice(0, 10);

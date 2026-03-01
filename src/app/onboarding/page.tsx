@@ -52,8 +52,8 @@ function OnboardingContent() {
     setTextPromptLoading(true);
     try {
       const meRes = await fetch("/api/me", { credentials: "include" });
-      if (meRes.status === 401) {
-        router.push(`/signup?context=${encodeURIComponent(trimmed)}`);
+      if (!meRes.ok) {
+        alert("Session unavailable. Refresh and try again.");
         return;
       }
       const similarRes = await fetch("/api/similar-ideas", {
@@ -64,10 +64,6 @@ function OnboardingContent() {
       });
       if (!similarRes.ok) {
         const data = await similarRes.json().catch(() => ({}));
-        if (similarRes.status === 403) {
-          router.push(`/signup?context=${encodeURIComponent(trimmed)}`);
-          return;
-        }
         alert(data.error || "Something went wrong.");
         return;
       }
@@ -84,16 +80,9 @@ function OnboardingContent() {
     setCustomLoading(true);
     try {
       const meRes = await fetch("/api/me", { credentials: "include" });
-      if (meRes.status === 401) {
-        const params = new URLSearchParams();
-        const goal = primaryGoal === "Other" ? goalOther : primaryGoal;
-        if (goal) params.set("primary_goal", goal);
-        if (timePerWeek) params.set("time_per_week", timePerWeek);
-        if (budget) params.set("budget", budget);
-        if (skills) params.set("skills", skills);
-        if (riskTolerance) params.set("risk_tolerance", riskTolerance);
-        if (interests.length) params.set("interests", interests.join(","));
-        router.push(`/signup?${params.toString()}`);
+      if (!meRes.ok) {
+        alert("Session unavailable. Refresh and try again.");
+        setCustomLoading(false);
         return;
       }
       const profile = {
@@ -109,17 +98,6 @@ function OnboardingContent() {
       });
       const data = await batchRes.json().catch(() => ({}));
       if (!batchRes.ok) {
-        if (batchRes.status === 403 || batchRes.status === 429) {
-          const params = new URLSearchParams();
-          if (profile.primary_goal) params.set("primary_goal", profile.primary_goal);
-          if (timePerWeek) params.set("time_per_week", timePerWeek);
-          if (budget) params.set("budget", budget);
-          if (skills) params.set("skills", skills);
-          if (riskTolerance) params.set("risk_tolerance", riskTolerance);
-          if (interests.length) params.set("interests", interests.join(","));
-          router.push(`/signup?${params.toString()}`);
-          return;
-        }
         alert(data.error || "Something went wrong.");
         return;
       }
@@ -157,7 +135,7 @@ function OnboardingContent() {
         </div>
 
         <Link
-          href="/signup?flow=random"
+          href="/top-ideas"
           className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300 transition-colors min-h-[140px]"
         >
           <IconDice className="w-10 h-10 text-white" />

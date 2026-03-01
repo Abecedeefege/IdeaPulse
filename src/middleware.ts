@@ -12,6 +12,9 @@ export async function middleware(req: NextRequest) {
 
   if (!isProtectedPage && !isProtectedApi) return NextResponse.next();
 
+  // Temporary: act as logged in until email login is fixed (set BYPASS_AUTH=1)
+  if (process.env.BYPASS_AUTH) return NextResponse.next();
+
   const res = NextResponse.next();
 
   const supabase = createServerClient(

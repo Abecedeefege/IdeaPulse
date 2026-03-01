@@ -77,6 +77,11 @@ If no automated verification exists, provide a manual checklist and expected out
 - If implementation fails twice, re-plan before continuing
 - State assumptions explicitly
 
+### Planning / Multi-item work
+- Rule: When planning a list of items (multiple features, fixes, or tasks), create separate plan files by topic, each small and revertible. Do not put everything in one large plan.
+- Why: The user can approve and build each plan file independently and validate incrementally; reverting is easier and checking "what's done" is clearer.
+- Example: For "fix auth, fix email, and add logging", create e.g. `plan_auth_fix.md`, `plan_email_fix.md`, `plan_logging.md` instead of one combined plan.
+
 ### Editing
 - Avoid broad refactors unless requested
 - Preserve API contracts unless explicitly changing them

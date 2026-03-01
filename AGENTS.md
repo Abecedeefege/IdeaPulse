@@ -30,12 +30,13 @@ Copy `.env.example` to `.env.local`. The app requires Supabase, OpenAI, and (opt
 
 ### Architecture notes
 
-- **Auth middleware** (`src/middleware.ts`): protects `/dashboard`, `/ideas`, `/idea/*`, `/profile`, `/analyze` pages and `/api/me`, `/api/profile`, `/api/request-more`, `/api/usage` API routes. Token-authenticated routes (`/api/idea/[id]/*`) bypass middleware and verify JWTs internally.
+- **Auth middleware** (`src/middleware.ts`): protects `/dashboard`, `/ideas`, `/idea/*`, `/profile`, `/analyze` pages and `/api/me`, `/api/profile`, `/api/request-more`, `/api/usage` API routes. Token-authenticated routes (`/api/idea/[id]/*`) bypass middleware and verify JWTs internally. Optional `BYPASS_AUTH` + `BYPASS_AUTH_EMAIL` let the site act as a specific user until email login is fixed (see SETUP.md).
 - **Validation**: Zod schemas in `src/lib/validation.ts` validate API input. Centralized env validation in `src/lib/env.ts`.
 - **Error boundaries**: `error.tsx` files exist at root, dashboard, ideas, and idea/[id] levels.
 - **Loading states**: `loading.tsx` skeleton files exist for dashboard, ideas, idea/[id], and top-ideas.
 - **SEO**: Dynamic pages use `generateMetadata()`. Sitemap at `/sitemap.xml`, robots at `/robots.txt`.
 - **UI components**: Reusable `Button`, `Input`, `Card` in `src/components/ui/`.
+- **Planning**: For multi-item work, create small revertible plans by topic in separate plan files (see CLAUDE.md).
 
 ### Gotchas
 

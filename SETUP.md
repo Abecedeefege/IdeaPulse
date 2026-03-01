@@ -40,4 +40,8 @@ For login/signup magic-link emails to work in production:
 
 2. Ensure **Vercel** has `NEXT_PUBLIC_APP_URL` set to that same production URL in the production environment (and optionally in Preview with the preview URL). If this is missing or set to localhost, magic links will not be sent and the app will return an error.
 
+## 4. Temporary: act as logged in
+
+Until email login is fixed, you can set `BYPASS_AUTH=1` and `BYPASS_AUTH_EMAIL=<your-email>` in Vercel (or `.env.local`). The user must exist in the `users` table. The site will treat requests as that user. Remove these env vars when email login is production-ready.
+
 Done. The site will work once these are set and the migration has been run.

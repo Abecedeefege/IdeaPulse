@@ -25,21 +25,19 @@ export async function createServerSupabase() {
 }
 
 /**
- * Returns the current Supabase Auth user (email) if session exists; null otherwise.
- * When BYPASS_AUTH and BYPASS_AUTH_EMAIL are set (temporary until email is fixed), returns that user from DB if found.
+ * Returns the current Supabase Auth user if session exists; otherwise the default "paid" user (pulse@itamoa.com).
+ * No login gates until email validation is complete — every visit is treated as that user.
  */
 export async function getServerUser(): Promise<{ id: string; email: string } | null> {
   const supabase = await createServerSupabase();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (!error && user?.email) return { id: user.id, email: user.email };
 
-  const bypassEmail = (process.env.BYPASS_AUTH_EMAIL?.trim() || "pulse@itamoa.com");
-  if (process.env.BYPASS_AUTH && bypassEmail) {
-    const { supabaseServer } = await import("@/lib/supabase");
-    const db = supabaseServer();
-    const { data: row } = await db.from("users").select("id, email").eq("email", bypassEmail).single();
-    if (row?.email) return { id: row.id, email: row.email };
-  }
+  const defaultEmail = (process.env.BYPASS_AUTH_EMAIL?.trim() || "pulse@itamoa.com");
+  const { supabaseServer } = await import("@/lib/supabase");
+  const db = supabaseServer();
+  const { data: row } = await db.from("users").select("id, email").eq("email", defaultEmail).single();
+  if (row?.email) return { id: row.id, email: row.email };
 
   return null;
 }

@@ -81,6 +81,17 @@ If no automated verification exists, provide a manual checklist and expected out
 - Rule: When planning a list of items (multiple features, fixes, or tasks), create separate plan files by topic, each small and revertible. Do not put everything in one large plan.
 - Why: The user can approve and build each plan file independently and validate incrementally; reverting is easier and checking "what's done" is clearer.
 - Example: For "fix auth, fix email, and add logging", create e.g. `plan_auth_fix.md`, `plan_email_fix.md`, `plan_logging.md` instead of one combined plan.
+- Rule: When the user suggests changes in plan mode, always create one or more **MD plan files** (in `docs/plans/` or agreed location), one file per topic, so the user can approve and build them individually. Do not deliver a single mixed plan when the request contains multiple distinct items.
+- Rule: If you cannot create a plan file (e.g. information or instructions are missing), say so explicitly and list what is missing; do not deliver a half-done or combined plan.
+- Why: Ensures every suggested change is in a buildable, revertible plan file and avoids half-done work.
+
+### Documentation / Deployment (Vercel and Supabase)
+- Rule: When giving Vercel or Supabase instructions, be **super specific** and list them **step-by-step** (numbered steps, one action per step). No vague "configure X"; use exact menu paths and variable names.
+- Why: Vague instructions lead to misconfiguration and support back-and-forth; exact steps are reproducible.
+
+### After implementing a plan
+- Rule: When you implement a change from a plan, share in the response: (1) the **plan file or instructions** followed (path or link), and (2) a **production link** where the user can check the change live (or note "N/A" for docs-only changes).
+- Why: The user can verify the implementation and open the live site without guessing the URL.
 
 ### Editing
 - Avoid broad refactors unless requested

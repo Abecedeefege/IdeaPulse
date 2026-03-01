@@ -4,7 +4,7 @@ import { similarIdeasSchema } from "@/lib/validation";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
 
-const SIMILAR_IDEAS_DAILY_LIMIT = 10;
+const SIMILAR_IDEAS_DAILY_LIMIT = Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
 
 function checkEnv(): string | null {
   if (!process.env.OPENAI_API_KEY) return "OpenAI (add OPENAI_API_KEY in Vercel)";

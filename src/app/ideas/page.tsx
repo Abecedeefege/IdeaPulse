@@ -1,36 +1,47 @@
 import { supabaseServer } from "@/lib/supabase";
 import { getServerUser } from "@/lib/supabase-server";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import IdeaLikeDislike from "@/components/IdeaLikeDislike";
 
 export const dynamic = "force-dynamic";
 
 export default async function IdeasPage() {
   const authUser = await getServerUser();
-  if (!authUser) redirect("/signup");
-
   const db = supabaseServer();
-  const { data: appUser } = await db.from("users").select("id").eq("email", authUser.email).single();
-  if (!appUser) redirect("/signup");
+  const { data: appUser } = authUser
+    ? await db.from("users").select("id").eq("email", authUser.email).single()
+    : { data: null };
 
-  const { data: batches } = await db
-    .from("idea_batches")
-    .select("id, scheduled_for_date, created_at")
-    .eq("user_id", appUser.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { data: batchesData } = appUser
+    ? await db
+        .from("idea_batches")
+        .select("id, scheduled_for_date, created_at")
+        .eq("user_id", appUser.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+    : { data: null };
+  const batch = batchesData?.[0];
 
-  const batch = batches?.[0];
-  if (!batch) redirect("/signup");
+  const { data: ideasData } = batch
+    ? await db
+        .from("ideas")
+        .select("id, batch_id, idea_json, created_at")
+        .eq("batch_id", batch.id)
+        .order("created_at")
+    : { data: null };
+  const list = ideasData ?? [];
 
-  const { data: ideas } = await db
-    .from("ideas")
-    .select("id, batch_id, idea_json, created_at")
-    .eq("batch_id", batch.id)
-    .order("created_at");
-
-  const list = ideas ?? [];
+  if (!authUser || !appUser || list.length === 0) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Your ideas</h1>
+        <p className="text-zinc-400 mb-6">No ideas yet. Request a batch from the dashboard to get your first ideas.</p>
+        <Link href="/dashboard" className="text-violet-400 hover:text-violet-300 font-medium">
+          Go to dashboard →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div>

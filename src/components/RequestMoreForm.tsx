@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function RequestMoreForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  // Pre-fill email when user is "logged in" (session or bypass) so they can get recommendations with one click
+  useEffect(() => {
+    if (email) return;
+    fetch("/api/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.email) setEmail(data.email);
+      })
+      .catch(() => {});
+  }, [email]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

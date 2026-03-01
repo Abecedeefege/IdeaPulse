@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { getServerUser } from "@/lib/supabase-server";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const email = typeof body.email === "string" ? body.email.trim() : "";
+    const body = await req.json().catch(() => ({}));
+    let email = typeof body.email === "string" ? body.email.trim() : "";
+    if (!email) {
+      const authUser = await getServerUser();
+      if (authUser?.email) email = authUser.email;
+    }
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
     const db = supabaseServer();

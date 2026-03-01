@@ -12,7 +12,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
   ACTION_LINK_SECRET: z.string().min(32).optional(),
   CRON_SECRET: z.string().optional(),
-  RATE_LIMIT_IDEAS_PER_DAY: z.coerce.number().default(10),
+  RATE_LIMIT_IDEAS_PER_DAY: z.coerce.number().default(100),
   RATE_LIMIT_ANALYSES_PER_WEEK_FREE: z.coerce.number().default(0),
 });
 

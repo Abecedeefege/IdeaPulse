@@ -8,6 +8,7 @@ END $$;
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  auth_id UUID UNIQUE,
   email TEXT NOT NULL UNIQUE,
   timezone TEXT DEFAULT 'UTC',
   email_frequency TEXT NOT NULL DEFAULT 'weekly' CHECK (email_frequency IN ('daily', 'weekly')),

@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { signInWithMagicLink } from "@/lib/auth";
 import FirehoseLoader from "@/components/FirehoseLoader";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,8 @@ export default function LoginPage() {
       const checkData = await checkRes.json().catch(() => ({ exists: false }));
       const isExisting = checkData.exists;
 
-      const redirectPath = isExisting ? "/dashboard" : "/profile";
+      const redirectParam = searchParams.get("redirect");
+      const redirectPath = redirectParam || (isExisting ? "/dashboard" : "/profile");
       await signInWithMagicLink(email.trim(), redirectPath);
 
       setStatus("done");
@@ -78,5 +81,13 @@ export default function LoginPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto text-zinc-400">Loading…</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

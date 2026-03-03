@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { IdeaJson } from "@/types";
 import FirehoseLoader from "@/components/FirehoseLoader";
 import IdeaLikeDislike from "@/components/IdeaLikeDislike";
+import AuthPrompt from "@/components/AuthPrompt";
+import { useAuth } from "@/lib/useAuth";
 import Link from "next/link";
 
 type SimilarIdea = IdeaJson & { _savedId?: string | null };
@@ -13,11 +15,17 @@ type Props =
   | { seedIdea?: never; context: string };
 
 export default function GetSimilarIdeas(props: Props) {
+  const loggedIn = useAuth();
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState<SimilarIdea[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   const fetchSimilar = async () => {
+    if (loggedIn === false) {
+      setShowAuth(true);
+      return;
+    }
     setLoading(true);
     setError(null);
     setIdeas(null);
@@ -43,17 +51,24 @@ export default function GetSimilarIdeas(props: Props) {
 
   return (
     <div className="mt-6">
+      {showAuth && (
+        <div className="mb-4">
+          <AuthPrompt onClose={() => setShowAuth(false)} message="Log in to generate ideas" />
+        </div>
+      )}
       <FirehoseLoader show={loading} contained label="Generating similar ideas…" />
       {!ideas || ideas.length === 0 ? (
         <>
-          <button
-            type="button"
-            onClick={fetchSimilar}
-            disabled={loading}
-            className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
-          >
-            Get similar ideas
-          </button>
+          {!showAuth && (
+            <button
+              type="button"
+              onClick={fetchSimilar}
+              disabled={loading}
+              className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+            >
+              Get similar ideas
+            </button>
+          )}
           {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </>
       ) : (

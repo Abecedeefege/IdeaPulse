@@ -9,7 +9,7 @@ const envSchema = z.object({
   OPENAI_MODEL_DEEP: z.string().default("gpt-4o"),
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().default("IdeaPulse <onboarding@resend.dev>"),
-  NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL must be set to your production URL (e.g. https://idea-pulse-chi.vercel.app)"),
   ACTION_LINK_SECRET: z.string().min(32).optional(),
   CRON_SECRET: z.string().optional(),
   RATE_LIMIT_IDEAS_PER_DAY: z.coerce.number().default(10),

@@ -1,21 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabaseBrowser } from "@/lib/supabase";
+import { useAuth } from "@/lib/useAuth";
 
 export default function NavAuth() {
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const supabase = supabaseBrowser();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setLoggedIn(!!session?.user);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setLoggedIn(!!session?.user);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  const loggedIn = useAuth();
 
   if (loggedIn === null) return null;
 

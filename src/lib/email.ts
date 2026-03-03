@@ -7,7 +7,7 @@ function getResend(): Resend {
   return _resend;
 }
 const from = process.env.EMAIL_FROM || "IdeaPulse <onboarding@resend.dev>";
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://idea-pulse-chi.vercel.app";
 
 type IdeaRow = { id: string; idea_json: Record<string, unknown> };
 

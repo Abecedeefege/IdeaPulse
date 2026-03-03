@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { trendingRequests } from "@/data/trending-requests";
 import { curatedIdeas } from "@/data/curated-ideas";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://idea-pulse-chi.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [

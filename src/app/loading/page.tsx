@@ -18,7 +18,8 @@ export default function LoadingPage() {
       if (cancelled) return;
       if (session?.user) {
         setDone(true);
-        router.replace("/ideas");
+        fetch("/api/me", { credentials: "include" }).catch(() => {});
+        router.replace("/dashboard");
         return;
       }
     };

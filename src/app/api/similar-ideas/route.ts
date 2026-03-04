@@ -3,8 +3,7 @@ import { generateIdeas, logRequest } from "@/lib/openai";
 import { similarIdeasSchema } from "@/lib/validation";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
-
-const SIMILAR_IDEAS_DAILY_LIMIT = Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
+import { getAccountType } from "@/lib/account";
 
 function checkEnv(): string | null {
   if (!process.env.OPENAI_API_KEY) return "OpenAI (add OPENAI_API_KEY in Vercel)";
@@ -29,6 +28,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Session unavailable. Refresh and try again." }, { status: 401 });
     }
 
+    const accountType = await getAccountType(db, appUser.id);
+    const dailyLimit =
+      accountType === "pro" || accountType === "team"
+        ? Number(process.env.RATE_LIMIT_IDEAS_PER_DAY_PRO) || 500
+        : Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
+
     const today = new Date().toISOString().slice(0, 10);
     const tomorrow = new Date(Date.UTC(
       parseInt(today.slice(0, 4), 10),
@@ -42,9 +47,14 @@ export async function POST(req: Request) {
       .eq("kind", "similar_ideas")
       .gte("created_at", `${today}T00:00:00.000Z`)
       .lt("created_at", `${tomorrow}T00:00:00.000Z`);
-    if (count != null && count >= SIMILAR_IDEAS_DAILY_LIMIT) {
+    if (count != null && count >= dailyLimit) {
+      const isPaid = accountType === "pro" || accountType === "team";
       return NextResponse.json(
-        { error: "You've used your free ideas for today. Upgrade or try again tomorrow." },
+        {
+          error: isPaid
+            ? "You've reached your daily limit. Try again tomorrow."
+            : "You've used your free ideas for today. Upgrade or try again tomorrow.",
+        },
         { status: 403 }
       );
     }
@@ -76,8 +86,7 @@ export async function POST(req: Request) {
 
     let savedIds: string[] = [];
     try {
-      const profile = (appUser.profile_json as { plan?: string }) ?? {};
-      const isPaid = profile.plan === "pro" || profile.plan === "team";
+      const isPaid = accountType === "pro" || accountType === "team";
 
       const { data: batch } = await db
         .from("idea_batches")

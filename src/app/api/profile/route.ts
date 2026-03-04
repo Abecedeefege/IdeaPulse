@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { getServerUser } from "@/lib/supabase-server";
+import { profileUpdateSchema } from "@/lib/validation";
 
 export async function GET() {
   const authUser = await getServerUser();
@@ -33,17 +34,24 @@ export async function POST(req: Request) {
   if (!authUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
   try {
-    const body = await req.json();
-    const emailFrequency = body.email_frequency === "daily" ? "daily" : "weekly";
-    const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
+    const body = await req.json().catch(() => ({}));
+    const parsed = profileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
 
-    const db = supabaseServer();
+    const { email_frequency: emailFrequency, profile } = parsed.data;
     const profileJson = {
       primary_goal: profile.primary_goal,
       constraints: profile.constraints,
       interests: profile.interests,
       preference_summary: profile.preference_summary ?? "",
     };
+
+    const db = supabaseServer();
 
     const { data: existing } = await db
       .from("users")

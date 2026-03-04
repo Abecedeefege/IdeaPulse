@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 import { getServerUser } from "@/lib/supabase-server";
 import { verifyActionToken } from "@/lib/signed-links";
+import { getAccountType } from "@/lib/account";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -23,9 +24,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!appUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   const { data: ideaRow } = await db.from("ideas").select("user_id, idea_json").eq("id", ideaId).single();
   if (!ideaRow) return NextResponse.json({ error: "Idea not found" }, { status: 404 });
-  const profile = (appUser.profile_json as { plan?: string; preference_summary?: string }) ?? {};
+  const accountType = await getAccountType(db, appUser.id);
+  const profile = (appUser.profile_json as { preference_summary?: string }) ?? {};
   const isOwnIdea = ideaRow.user_id === appUser.id;
-  if (!isOwnIdea && profile.plan !== "pro" && profile.plan !== "team") {
+  if (!isOwnIdea && accountType !== "pro" && accountType !== "team") {
     const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
     return NextResponse.json({ error: "Paid feature", redirect: `${base}/pricing` }, { status: 402 });
   }

@@ -13,6 +13,7 @@ const envSchema = z.object({
   ACTION_LINK_SECRET: z.string().min(32).optional(),
   CRON_SECRET: z.string().optional(),
   RATE_LIMIT_IDEAS_PER_DAY: z.coerce.number().default(100),
+  RATE_LIMIT_IDEAS_PER_DAY_PRO: z.coerce.number().default(500),
   RATE_LIMIT_ANALYSES_PER_WEEK_FREE: z.coerce.number().default(0),
 });
 

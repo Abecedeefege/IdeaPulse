@@ -3,11 +3,22 @@ import { supabaseServer } from "@/lib/supabase";
 import { getServerUser } from "@/lib/supabase-server";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
+import { requestMoreSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    let email = typeof body.email === "string" ? body.email.trim() : "";
+    let email = "";
+    if (body.email) {
+      const parsed = requestMoreSchema.safeParse({ email: body.email });
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: parsed.error.issues[0]?.message ?? "Invalid email" },
+          { status: 400 }
+        );
+      }
+      email = parsed.data.email;
+    }
     if (!email) {
       const authUser = await getServerUser();
       if (authUser?.email) email = authUser.email;

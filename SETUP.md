@@ -8,6 +8,8 @@
 
 All required tables will be created. You can confirm in **Table Editor** (users, idea_batches, ideas, etc.).
 
+**Account type migration:** After initial setup, run `supabase/migrations/20260304000000_add_account_type.sql` in SQL Editor to add the `account_type` column for quota and feature gating.
+
 ## 2. Vercel (environment variables and deploy)
 
 1. Open [https://vercel.com/dashboard](https://vercel.com/dashboard).

@@ -43,7 +43,7 @@ Do this so login/signup magic-link emails work in production. Use the same URL a
 
 ## 4. No login gates (until email validation is complete)
 
-The app treats every visit as logged in as a default user (`pulse@itamoa.com`, or set `BYPASS_AUTH_EMAIL`). **That user must exist in the `users` table** (e.g. create once via onboarding with that email). Then dashboard, ideas, and "Request more" work for all visitors without real login. No redirects to login.
+The app treats every visit as logged in as a default user (`pulse@itamoa.com`, or set `BYPASS_AUTH_EMAIL`). **That user must exist in the `users` table** (e.g. create once via onboarding with that email). Then dashboard, ideas, and "Request more" work for all visitors without real login. No redirects to login. Idea quota is 100 per day (`RATE_LIMIT_IDEAS_PER_DAY`).
 
 **In Vercel (step-by-step):**
 

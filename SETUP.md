@@ -1,5 +1,7 @@
 # Vercel + Supabase setup (brief)
 
+For super-specific step-by-step deployment instructions, see **[DEPLOY.md](DEPLOY.md)**.
+
 ## 1. Supabase (create tables — do this once)
 
 1. Open your IdeaPulse project at [supabase.com/dashboard](https://supabase.com/dashboard).

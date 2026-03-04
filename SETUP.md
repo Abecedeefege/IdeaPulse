@@ -41,22 +41,10 @@ Do this so login/signup magic-link emails work in production. Use the same URL a
 9. Click **Save**.
 10. Ensure Vercel has **Name** = `NEXT_PUBLIC_APP_URL` set to that same production URL (step 2 above). If it is missing or set to localhost, magic links will not work.
 
-## 4. No login gates (until email validation is complete)
+## 4. Auth mode
 
-The app treats every visit as logged in as a default user (`pulse@itamoa.com`, or set `BYPASS_AUTH_EMAIL`). **That user must exist in the `users` table** (e.g. create once via onboarding with that email). Then dashboard, ideas, and "Request more" work for all visitors without real login. No redirects to login.
+**Real login (default):** When `BYPASS_AUTH` is not set, users must sign in with email (magic link). Visiting `/dashboard`, `/ideas`, `/profile`, or `/analyze` without a session redirects to `/login`. Ensure `NEXT_PUBLIC_APP_URL` and Supabase redirect URLs are configured (step 3 above). Check `/api/health` to verify APP_URL is set correctly.
 
-**In Vercel (step-by-step):**
-
-1. Open [https://vercel.com/dashboard](https://vercel.com/dashboard).
-2. Click the project **IdeaPulse** (or your project name).
-3. In the top navigation, click **Settings**.
-4. In the left sidebar, click **Environment Variables**.
-5. Click **Add**. Set **Name** = `BYPASS_AUTH`, **Value** = `1`. Set **Environment** to Production (and Preview if you want). Click **Save**.
-6. Click **Add** again. Set **Name** = `BYPASS_AUTH_EMAIL`, **Value** = the email of the user to act as (e.g. `pulse@itamoa.com`). That user must exist in the `users` table. Set **Environment** to Production (and Preview if needed). Click **Save**.
-7. In the left sidebar, click **Deployments**. Open the **"..."** menu on the latest deployment, click **Redeploy** so the new env vars are applied.
-
-**Locally:** In `.env.local`, add `BYPASS_AUTH=1` and `BYPASS_AUTH_EMAIL=your@email.com` (user must exist in `users`). Restart the dev server.
-
-Remove these env vars when email login is production-ready.
+**Build mode (optional):** To treat all visits as one user (e.g. during development or before email is configured), set `BYPASS_AUTH=1` and `BYPASS_AUTH_EMAIL=your@email.com` (that user must exist in `users`). Then dashboard, ideas, and "Request more" work without real login. Remove these when email login is production-ready.
 
 Done. The site will work once these are set and the migration has been run.

@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
     const { data: savedIdeas } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
     await sendBatchEmail(email, savedIdeas ?? [], userId);
-    const magicResult = await sendMagicLinkServer(email);
+    const magicResult = await sendMagicLinkServer(email, { redirectTo: "/loading?redirect=%2Fprofile" });
     if (!magicResult.ok && magicResult.error === "APP_URL_NOT_SET") {
       return NextResponse.json(
         { error: "Email is not configured for this environment. Please try again later or contact support." },

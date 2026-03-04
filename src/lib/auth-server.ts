@@ -10,7 +10,10 @@ const LOCALHOST_PATTERN = /^https?:\/\/localhost(:\d+)?(\/|$)/i;
  * Use after onboarding so the user receives a login link.
  * Returns { ok: false, error } when APP_URL is missing or localhost (do not send link); otherwise returns { ok: true } or { ok: false, error } from Supabase.
  */
-export async function sendMagicLinkServer(email: string): Promise<{ ok: boolean; error?: string }> {
+export async function sendMagicLinkServer(
+  email: string,
+  options?: { redirectTo?: string }
+): Promise<{ ok: boolean; error?: string }> {
   if (!url || !anon) {
     console.error("auth-server: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY missing");
     return { ok: false, error: "Auth not configured" };
@@ -20,7 +23,8 @@ export async function sendMagicLinkServer(email: string): Promise<{ ok: boolean;
     console.error("auth-server: NEXT_PUBLIC_APP_URL is missing or localhost; refusing to send magic link");
     return { ok: false, error: "APP_URL_NOT_SET" };
   }
-  const redirectTo = `${appUrl}/loading`;
+  const redirectPath = options?.redirectTo?.startsWith("/") ? options.redirectTo : "/loading";
+  const redirectTo = `${appUrl}${redirectPath}`;
   const supabase = createClient(url, anon, { auth: { persistSession: false } });
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),

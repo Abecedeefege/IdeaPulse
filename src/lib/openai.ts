@@ -17,9 +17,13 @@ function estimateCost(model: string, prompt: number, completion: number): number
   const rates: Record<string, { in: number; out: number }> = {
     "gpt-4o-mini": { in: 0.15 / 1e6, out: 0.6 / 1e6 },
     "gpt-4o": { in: 2.5 / 1e6, out: 10 / 1e6 },
+    "gpt-4.1-mini": { in: 0.4 / 1e6, out: 1.6 / 1e6 },
+    "gpt-4.1-nano": { in: 0.1 / 1e6, out: 0.4 / 1e6 },
+    "gpt-4.1": { in: 2.0 / 1e6, out: 8.0 / 1e6 },
+    "o4-mini": { in: 1.1 / 1e6, out: 4.4 / 1e6 },
   };
   const r = rates[model] || rates["gpt-4o-mini"];
-  return (prompt * r.in + completion * r.out) / 1000;
+  return prompt * r.in + completion * r.out;
 }
 
 const ideaArrayJsonSchema = {

@@ -22,6 +22,9 @@ yarn-error.log*
 *.pem
 IdeaPulse/
 
+# supabase
+supabase/.temp/
+
 # vercel
 .vercel
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
+import { generateSlug } from "@/lib/slugify";
 
 export async function POST() {
   try {
@@ -86,6 +87,15 @@ export async function POST() {
     const { error: ideasError } = await db.from("ideas").insert(ideaRows);
     if (ideasError) {
       return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
+    }
+
+    // Generate slugs for each idea
+    const { data: savedRows } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
+    for (const row of savedRows ?? []) {
+      const j = row.idea_json as Record<string, unknown>;
+      const title = String(j.title ?? "idea");
+      const slug = generateSlug(title, row.id);
+      await db.from("ideas").update({ slug }).eq("id", row.id);
     }
 
     return NextResponse.json({ ok: true, batchId: batch.id });

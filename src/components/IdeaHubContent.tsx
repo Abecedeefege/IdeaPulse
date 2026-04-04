@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import Link from "next/link";
-import type { IdeaJson } from "@/types";
-import FirehoseLoader from "@/components/FirehoseLoader";
-import IdeaLikeDislike from "@/components/IdeaLikeDislike";
+import IdeaGenerationLoader from "@/components/IdeaGenerationLoader";
+import { useIdeaGenerationRun } from "@/hooks/use-idea-generation-run";
 
 const GOALS = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
 const INTERESTS = ["Marketing / growth", "AI / automation", "Content", "Local business", "SaaS", "E-commerce", "Community"];
@@ -35,16 +33,8 @@ function IconGear({ className }: { className?: string }) {
   );
 }
 
-type HubResult = {
-  ideas: IdeaJson[];
-  ideaIds: string[];
-  batchId: string;
-};
-
 export function IdeaHubContent() {
   const [textPrompt, setTextPrompt] = useState("");
-  const [hubLoading, setHubLoading] = useState(false);
-  const [loadingLabel, setLoadingLabel] = useState("Generating ideas…");
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [goalOther, setGoalOther] = useState("");
   const [timePerWeek, setTimePerWeek] = useState("");
@@ -52,7 +42,8 @@ export function IdeaHubContent() {
   const [skills, setSkills] = useState("");
   const [riskTolerance, setRiskTolerance] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
-  const [result, setResult] = useState<HubResult | null>(null);
+
+  const { run, loading, messages, sessionKey } = useIdeaGenerationRun();
 
   const toggleInterest = (x: string) => {
     setInterests((prev) => (prev.includes(x) ? prev.filter((i) => i !== x) : [...prev, x]));
@@ -67,89 +58,74 @@ export function IdeaHubContent() {
     return true;
   };
 
-  const runSimilarIdeas = async (context: string, label: string) => {
-    setLoadingLabel(label);
-    setHubLoading(true);
-    setResult(null);
-    try {
-      if (!(await ensureMe())) return;
-      const similarRes = await fetch("/api/similar-ideas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ context }),
-      });
-      const data = await similarRes.json().catch(() => ({}));
-      if (!similarRes.ok) {
-        alert(data.error || "Something went wrong.");
-        return;
-      }
-      const ideas = (data.ideas || []) as IdeaJson[];
-      const ideaIds = Array.isArray(data.ideaIds) ? data.ideaIds : [];
-      const batchId = typeof data.batchId === "string" ? data.batchId : "";
-      if (!batchId || ideas.length === 0) {
-        alert("Could not load ideas. Please try again.");
-        return;
-      }
-      setResult({ ideas, ideaIds, batchId });
-    } catch {
-      alert("Network error. Try again.");
-    } finally {
-      setHubLoading(false);
-    }
-  };
-
   const handleTextPromptContinue = () => {
     const trimmed = textPrompt.trim();
     if (!trimmed) return;
-    void runSimilarIdeas(trimmed, "Generating ideas from your prompt…");
+    void run(
+      async () => {
+        if (!(await ensureMe())) return { error: "Session unavailable" };
+        const res = await fetch("/api/similar-ideas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ context: trimmed }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return { error: data.error || "Something went wrong." };
+        return { batchId: data.batchId };
+      },
+      "text",
+      trimmed,
+    );
   };
 
   const handleRandomIdeas = () => {
-    void runSimilarIdeas(RANDOM_IDEAS_CONTEXT, "Generating random ideas…");
+    void run(
+      async () => {
+        if (!(await ensureMe())) return { error: "Session unavailable" };
+        const res = await fetch("/api/similar-ideas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ context: RANDOM_IDEAS_CONTEXT }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return { error: data.error || "Something went wrong." };
+        return { batchId: data.batchId };
+      },
+      "random",
+    );
   };
 
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoadingLabel("Generating custom ideas…");
-    setHubLoading(true);
-    setResult(null);
-    try {
-      if (!(await ensureMe())) return;
-      const profile = {
-        primary_goal: primaryGoal === "Other" ? goalOther : primaryGoal,
-        constraints: { time_per_week: timePerWeek, budget, skills, risk_tolerance: riskTolerance },
-        interests,
-      };
-      const batchRes = await fetch("/api/generate-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ profile }),
-      });
-      const data = await batchRes.json().catch(() => ({}));
-      if (!batchRes.ok) {
-        alert(data.error || "Something went wrong.");
-        return;
-      }
-      const ideas = (data.ideas || []) as IdeaJson[];
-      const ideaIds = Array.isArray(data.ideaIds) ? data.ideaIds : [];
-      const batchId = typeof data.batchId === "string" ? data.batchId : "";
-      if (!batchId || ideas.length === 0) {
-        alert("Could not load ideas. Please try again.");
-        return;
-      }
-      setResult({ ideas, ideaIds, batchId });
-    } catch {
-      alert("Network error. Try again.");
-    } finally {
-      setHubLoading(false);
-    }
+    const goalValue = primaryGoal === "Other" ? goalOther : primaryGoal;
+    void run(
+      async () => {
+        if (!(await ensureMe())) return { error: "Session unavailable" };
+        const profile = {
+          primary_goal: goalValue,
+          constraints: { time_per_week: timePerWeek, budget, skills, risk_tolerance: riskTolerance },
+          interests,
+        };
+        const res = await fetch("/api/generate-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ profile }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return { error: data.error || "Something went wrong." };
+        return { batchId: data.batchId };
+      },
+      "custom",
+      { primaryGoal: goalValue },
+    );
   };
 
   return (
     <Suspense fallback={<div className="max-w-lg mx-auto py-12 text-zinc-400">Loading…</div>}>
-      <FirehoseLoader show={hubLoading} label={loadingLabel} />
+      <IdeaGenerationLoader show={loading} messages={messages} sessionKey={sessionKey} />
 
       <div className="max-w-2xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-white">What do you want to create next</h1>
@@ -168,7 +144,7 @@ export function IdeaHubContent() {
             <button
               type="button"
               onClick={handleTextPromptContinue}
-              disabled={!textPrompt.trim() || hubLoading}
+              disabled={!textPrompt.trim() || loading}
               className="mt-3 w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium disabled:opacity-50 transition-colors"
             >
               Continue
@@ -178,7 +154,7 @@ export function IdeaHubContent() {
           <button
             type="button"
             onClick={handleRandomIdeas}
-            disabled={hubLoading}
+            disabled={loading}
             className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300 transition-colors min-h-[140px] disabled:opacity-50"
           >
             <IconDice className="w-10 h-10 text-white" />
@@ -334,7 +310,7 @@ export function IdeaHubContent() {
               </div>
               <button
                 type="submit"
-                disabled={hubLoading}
+                disabled={loading}
                 className="w-full bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-xl font-medium disabled:opacity-50 transition-colors"
               >
                 Get my ideas
@@ -342,60 +318,6 @@ export function IdeaHubContent() {
             </form>
           </div>
         </div>
-
-        {result && result.ideas.length > 0 && (
-          <div className="border-t border-zinc-800 pt-8 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-white">Your ideas</h2>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setResult(null)}
-                  className="text-sm text-zinc-400 hover:text-white transition-colors"
-                >
-                  Dismiss
-                </button>
-                <Link
-                  href={`/ideas?batch=${encodeURIComponent(result.batchId)}`}
-                  className="text-sm font-medium text-violet-400 hover:text-violet-300"
-                >
-                  Open full page →
-                </Link>
-              </div>
-            </div>
-            <p className="text-sm text-zinc-400">Like or dislike to improve the next batch.</p>
-            <ul className="space-y-3">
-              {result.ideas.map((idea, idx) => {
-                const id = result.ideaIds[idx];
-                return (
-                  <li
-                    key={id || `${idea.title}-${idx}`}
-                    className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden"
-                  >
-                    {id ? (
-                      <Link href={`/idea/${id}`} className="block p-4 hover:bg-zinc-900/60 transition-colors">
-                        <h3 className="font-semibold text-white">{idea.title}</h3>
-                        <p className="text-sm text-zinc-400 mt-1">{idea.one_sentence_hook}</p>
-                        <p className="text-xs text-zinc-500 mt-2">Difficulty: {idea.difficulty_1_to_5}/5</p>
-                        <span className="inline-block mt-2 text-sm text-violet-400">View idea →</span>
-                      </Link>
-                    ) : (
-                      <div className="p-4">
-                        <h3 className="font-semibold text-white">{idea.title}</h3>
-                        <p className="text-sm text-zinc-400 mt-1">{idea.one_sentence_hook}</p>
-                      </div>
-                    )}
-                    {id ? (
-                      <div className="px-4 pb-4">
-                        <IdeaLikeDislike ideaId={id} />
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
       </div>
     </Suspense>
   );

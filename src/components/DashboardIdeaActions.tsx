@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import IdeaLikeDislike from "@/components/IdeaLikeDislike";
 
 type Props = {
   ideaId: string;
+  onDelete?: () => void;
+  onLiked?: () => void;
 };
 
-export default function DashboardIdeaActions({ ideaId }: Props) {
-  const router = useRouter();
+export default function DashboardIdeaActions({ ideaId, onDelete, onLiked }: Props) {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -27,7 +27,7 @@ export default function DashboardIdeaActions({ ideaId }: Props) {
         setDeleting(false);
         return;
       }
-      router.refresh();
+      onDelete?.();
     } catch {
       alert("Network error. Try again.");
       setDeleting(false);
@@ -36,7 +36,7 @@ export default function DashboardIdeaActions({ ideaId }: Props) {
 
   return (
     <div className="flex items-center justify-end gap-3">
-      <IdeaLikeDislike ideaId={ideaId} />
+      <IdeaLikeDislike ideaId={ideaId} showDislike={false} onLiked={onLiked} />
       <button
         type="button"
         onClick={handleDelete}
@@ -48,4 +48,3 @@ export default function DashboardIdeaActions({ ideaId }: Props) {
     </div>
   );
 }
-

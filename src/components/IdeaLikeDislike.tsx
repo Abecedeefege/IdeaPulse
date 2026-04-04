@@ -2,9 +2,13 @@
 
 import { useState, memo } from "react";
 
-type Props = { ideaId: string };
+type Props = {
+  ideaId: string;
+  showDislike?: boolean;
+  onLiked?: () => void;
+};
 
-export default memo(function IdeaLikeDislike({ ideaId }: Props) {
+export default memo(function IdeaLikeDislike({ ideaId, showDislike = true, onLiked }: Props) {
   const [loading, setLoading] = useState<"like" | "dislike" | null>(null);
 
   const act = async (type: "like" | "dislike") => {
@@ -16,8 +20,8 @@ export default memo(function IdeaLikeDislike({ ideaId }: Props) {
         window.location.href = data.redirect;
         return;
       }
-      if (res.ok) {
-        // Optional: update local state to show voted
+      if (res.ok && type === "like" && onLiked) {
+        onLiked();
       }
     } finally {
       setLoading(null);
@@ -34,14 +38,16 @@ export default memo(function IdeaLikeDislike({ ideaId }: Props) {
       >
         {loading === "like" ? <span aria-label="Loading">…</span> : "👍 Like"}
       </button>
-      <button
-        type="button"
-        onClick={() => act("dislike")}
-        disabled={!!loading}
-        className="text-sm text-zinc-400 hover:text-violet-400 disabled:opacity-50"
-      >
-        {loading === "dislike" ? <span aria-label="Loading">…</span> : "👎 Dislike"}
-      </button>
+      {showDislike && (
+        <button
+          type="button"
+          onClick={() => act("dislike")}
+          disabled={!!loading}
+          className="text-sm text-zinc-400 hover:text-violet-400 disabled:opacity-50"
+        >
+          {loading === "dislike" ? <span aria-label="Loading">…</span> : "👎 Dislike"}
+        </button>
+      )}
     </div>
   );
 });

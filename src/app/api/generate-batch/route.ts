@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { profileUpdateSchema } from "@/lib/validation";
 import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
+import { generateSlug } from "@/lib/slugify";
 import type { IdeaJson } from "@/types";
 
 export async function POST(req: Request) {
@@ -48,8 +49,16 @@ export async function POST(req: Request) {
     const { error: ideasError } = await db.from("ideas").insert(ideaRows);
     if (ideasError) return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
 
-    const { data: saved } = await db.from("ideas").select("id").eq("batch_id", batch.id).order("created_at");
+    const { data: saved } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
     const ideaIds = (saved ?? []).map((r) => r.id);
+
+    // Generate slugs for each idea
+    for (const row of saved ?? []) {
+      const j = row.idea_json as Record<string, unknown>;
+      const title = String(j.title ?? "idea");
+      const slug = generateSlug(title, row.id);
+      await db.from("ideas").update({ slug }).eq("id", row.id);
+    }
 
     return NextResponse.json({
       ok: true,

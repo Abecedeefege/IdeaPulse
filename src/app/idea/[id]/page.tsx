@@ -1,23 +1,45 @@
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import IdeaQuickActions from "@/components/IdeaQuickActions";
 import GetSimilarIdeas from "@/components/GetSimilarIdeas";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveIdea(segment: string) {
+  const db = supabaseServer();
+  if (UUID_RE.test(segment)) {
+    const { data } = await db
+      .from("ideas")
+      .select("id, idea_json, is_public, slug")
+      .eq("id", segment)
+      .single();
+    return data;
+  }
+  const { data } = await db
+    .from("ideas")
+    .select("id, idea_json, is_public, slug")
+    .eq("slug", segment)
+    .single();
+  return data;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const db = supabaseServer();
-    const { data } = await db.from("ideas").select("idea_json").eq("id", id).single();
-    if (!data) return { title: "Idea | IdeaPulse" };
-    const j = data.idea_json as Record<string, unknown>;
+    const idea = await resolveIdea(id);
+    if (!idea) return { title: "Idea | IdeaPulse" };
+    const j = idea.idea_json as Record<string, unknown>;
     const title = String(j.title ?? "Idea");
     const hook = String(j.one_sentence_hook ?? "");
+    const base = process.env.NEXT_PUBLIC_APP_URL || "";
+    const canonicalSlug = idea.slug || idea.id;
     return {
       title: `${title} | IdeaPulse`,
       description: hook,
       openGraph: { title, description: hook },
+      alternates: base ? { canonical: `${base}/idea/${canonicalSlug}` } : undefined,
     };
   } catch {
     return { title: "Idea | IdeaPulse" };
@@ -26,18 +48,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function IdeaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  let idea: { id: string; idea_json: unknown; is_public: boolean } | null = null;
+  let idea: { id: string; idea_json: unknown; is_public: boolean; slug: string | null } | null = null;
   try {
-    const db = supabaseServer();
-    const { data } = await db.from("ideas").select("id, idea_json, is_public").eq("id", id).single();
-    idea = data;
+    idea = await resolveIdea(id);
   } catch {
     // Supabase not configured or error
   }
   if (!idea) notFound();
+
+  // If accessed by UUID and slug exists, redirect to slug URL
+  if (UUID_RE.test(id) && idea.slug) {
+    redirect(`/idea/${idea.slug}`);
+  }
+
   const j = idea.idea_json as Record<string, unknown>;
   const base = process.env.NEXT_PUBLIC_APP_URL || "";
-  const ideaUrl = base ? `${base}/idea/${id}` : undefined;
+  const ideaUrl = base ? `${base}/idea/${idea.slug || idea.id}` : undefined;
   const title = String(j.title ?? "Idea");
   const hook = String(j.one_sentence_hook ?? "");
   const shareText = String(j.share_text_tweet_sized ?? "");

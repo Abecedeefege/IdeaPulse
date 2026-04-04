@@ -4,6 +4,7 @@ import { similarIdeasSchema } from "@/lib/validation";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
 import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
+import { generateSlug } from "@/lib/slugify";
 import type { IdeaJson } from "@/types";
 
 const SIMILAR_IDEAS_DAILY_LIMIT = Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
@@ -106,10 +107,18 @@ export async function POST(req: Request) {
 
     const { data: saved } = await db
       .from("ideas")
-      .select("id")
+      .select("id, idea_json")
       .eq("batch_id", batch.id)
       .order("created_at");
     const ideaIds = (saved ?? []).map((r) => r.id);
+
+    // Generate slugs for each idea
+    for (const row of saved ?? []) {
+      const j = row.idea_json as Record<string, unknown>;
+      const title = String(j.title ?? "idea");
+      const slug = generateSlug(title, row.id);
+      await db.from("ideas").update({ slug }).eq("id", row.id);
+    }
 
     return NextResponse.json({
       ok: true,

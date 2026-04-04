@@ -1,35 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import IdeaGenerationLoader from "@/components/IdeaGenerationLoader";
+import { useIdeaGenerationRun } from "@/hooks/use-idea-generation-run";
 
 export default function SearchFromLikedButton() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { run, loading, messages, sessionKey } = useIdeaGenerationRun();
 
-  const handleClick = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/ideas/search-from-liked", {
-        method: "POST",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error || "Something went wrong. Try again.");
-        setLoading(false);
-        return;
-      }
-      router.push("/ideas");
-    } catch {
-      setError("Network error. Try again.");
-      setLoading(false);
-    }
+  const handleClick = () => {
+    void run(
+      async () => {
+        const res = await fetch("/api/ideas/search-from-liked", {
+          method: "POST",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return { error: data.error || "Something went wrong. Try again." };
+        return { batchId: data.batchId as string };
+      },
+      "search-from-liked",
+    );
   };
 
   return (
     <div className="space-y-2">
+      <IdeaGenerationLoader show={loading} messages={messages} sessionKey={sessionKey} />
       <button
         type="button"
         onClick={handleClick}
@@ -45,8 +38,6 @@ export default function SearchFromLikedButton() {
           <>Search from liked ideas</>
         )}
       </button>
-      {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   );
 }
-

@@ -5,6 +5,7 @@ import { sendBatchEmail } from "@/lib/email";
 import { sendMagicLinkServer } from "@/lib/auth-server";
 import { onboardingSchema } from "@/lib/validation";
 import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
+import { generateSlug } from "@/lib/slugify";
 
 function checkEnv(): string | null {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase (add NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Vercel)";
@@ -105,6 +106,15 @@ export async function POST(req: Request) {
     if (ideasError) return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
 
     const { data: savedIdeas } = await db.from("ideas").select("id, idea_json").eq("batch_id", batch.id).order("created_at");
+
+    // Generate slugs for each idea
+    for (const row of savedIdeas ?? []) {
+      const j = row.idea_json as Record<string, unknown>;
+      const title = String(j.title ?? "idea");
+      const slug = generateSlug(title, row.id);
+      await db.from("ideas").update({ slug }).eq("id", row.id);
+    }
+
     await sendBatchEmail(email, savedIdeas ?? [], userId);
     const magicResult = await sendMagicLinkServer(email);
     if (!magicResult.ok && magicResult.error === "APP_URL_NOT_SET") {

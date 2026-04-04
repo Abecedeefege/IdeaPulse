@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase";
 import { getServerUser } from "@/lib/supabase-server";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
+import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
 
 export async function POST(req: Request) {
   try {
@@ -20,8 +21,16 @@ export async function POST(req: Request) {
     if (user.unsubscribed_at) return NextResponse.json({ error: "This email has unsubscribed." }, { status: 400 });
 
     const today = new Date().toISOString().slice(0, 10);
-    const { count } = await db.from("idea_batches").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("scheduled_for_date", today);
-    if (count != null && count >= 1) return NextResponse.json({ error: "You already received a batch today. Try again tomorrow." }, { status: 429 });
+    if (!isDailyBatchLimitDisabled()) {
+      const { count } = await db
+        .from("idea_batches")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("scheduled_for_date", today);
+      if (count != null && count >= 1) {
+        return NextResponse.json({ error: "You already received a batch today. Try again tomorrow." }, { status: 429 });
+      }
+    }
 
     const profile = (user.profile_json as { preference_summary?: string; primary_goal?: string; interests?: string[] }) ?? {};
     const summary = profile.preference_summary || [profile.primary_goal, Array.isArray(profile.interests) ? profile.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";

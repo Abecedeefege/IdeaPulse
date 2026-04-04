@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 import Link from "next/link";
 import type { IdeaJson } from "@/types";
 import FirehoseLoader from "@/components/FirehoseLoader";
 import IdeaLikeDislike from "@/components/IdeaLikeDislike";
-
-type SimilarIdea = IdeaJson & { _savedId?: string | null };
 
 type Props =
   | { seedIdea: IdeaJson | Record<string, unknown>; context?: never }
@@ -15,13 +12,14 @@ type Props =
 
 export default function GetSimilarIdeas(props: Props) {
   const [loading, setLoading] = useState(false);
-  const [ideas, setIdeas] = useState<SimilarIdea[] | null>(null);
+  const [ideas, setIdeas] = useState<IdeaJson[] | null>(null);
+  const [ideaIds, setIdeaIds] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const pathname = usePathname();
 
   const fetchSimilar = async () => {
     setError(null);
     setIdeas(null);
+    setIdeaIds(null);
     const meRes = await fetch("/api/me", { credentials: "include" });
     if (!meRes.ok) {
       setError("Session unavailable. Refresh the page and try again.");
@@ -40,7 +38,8 @@ export default function GetSimilarIdeas(props: Props) {
         setError(data.error || `Error ${res.status}`);
         return;
       }
-      setIdeas((data.ideas || []) as SimilarIdea[]);
+      setIdeas((data.ideas || []) as IdeaJson[]);
+      setIdeaIds(Array.isArray(data.ideaIds) ? data.ideaIds : []);
     } catch {
       setError("Network error");
     } finally {
@@ -68,7 +67,8 @@ export default function GetSimilarIdeas(props: Props) {
           <p className="text-zinc-400 text-sm mb-4">React to ideas to improve the next batch</p>
           <ul className="space-y-3">
             {ideas.map((idea, idx) => {
-              const hasLink = !!idea._savedId;
+              const savedId = ideaIds?.[idx];
+              const hasLink = !!savedId;
               const content = (
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
@@ -86,19 +86,19 @@ export default function GetSimilarIdeas(props: Props) {
 
               return (
                 <li
-                  key={idea._savedId || idx}
+                  key={savedId || idx}
                   className="rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 transition-colors"
                 >
                   {hasLink ? (
-                    <Link href={`/idea/${idea._savedId}`} className="block p-4">
+                    <Link href={`/idea/${savedId}`} className="block p-4">
                       {content}
                     </Link>
                   ) : (
                     <div className="p-4">{content}</div>
                   )}
                   <div className="px-4 pb-3 pt-0">
-                    {idea._savedId ? (
-                      <IdeaLikeDislike ideaId={idea._savedId} />
+                    {savedId ? (
+                      <IdeaLikeDislike ideaId={savedId} />
                     ) : (
                       <p className="text-xs text-zinc-600">Like or dislike to improve recommendations</p>
                     )}

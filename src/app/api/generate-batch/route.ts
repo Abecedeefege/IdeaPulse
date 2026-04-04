@@ -3,6 +3,8 @@ import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
 import { generateIdeas, logRequest } from "@/lib/openai";
 import { profileUpdateSchema } from "@/lib/validation";
+import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
+import type { IdeaJson } from "@/types";
 
 export async function POST(req: Request) {
   try {
@@ -17,13 +19,21 @@ export async function POST(req: Request) {
     const { data: appUser, error: userError } = await db
       .from("users")
       .select("id, email, profile_json")
-      .eq("email", authUser.email)
+      .eq("id", authUser.id)
       .single();
     if (userError || !appUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const today = new Date().toISOString().slice(0, 10);
-    const { count } = await db.from("idea_batches").select("id", { count: "exact", head: true }).eq("user_id", appUser.id).eq("scheduled_for_date", today);
-    if (count != null && count >= 1) return NextResponse.json({ error: "You already received a batch today. Try again tomorrow." }, { status: 429 });
+    if (!isDailyBatchLimitDisabled()) {
+      const { count } = await db
+        .from("idea_batches")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", appUser.id)
+        .eq("scheduled_for_date", today);
+      if (count != null && count >= 1) {
+        return NextResponse.json({ error: "You already received a batch today. Try again tomorrow." }, { status: 429 });
+      }
+    }
 
     const profileJson = profile as { primary_goal?: string; constraints?: Record<string, string>; interests?: string[] };
     const summary = [profileJson.primary_goal, profileJson.constraints && typeof profileJson.constraints === "object" ? Object.values(profileJson.constraints).filter(Boolean).join(", ") : "", Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
@@ -38,7 +48,15 @@ export async function POST(req: Request) {
     const { error: ideasError } = await db.from("ideas").insert(ideaRows);
     if (ideasError) return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
 
-    return NextResponse.json({ ok: true });
+    const { data: saved } = await db.from("ideas").select("id").eq("batch_id", batch.id).order("created_at");
+    const ideaIds = (saved ?? []).map((r) => r.id);
+
+    return NextResponse.json({
+      ok: true,
+      batchId: batch.id,
+      ideas: ideas as IdeaJson[],
+      ideaIds,
+    });
   } catch (e) {
     console.error("generate-batch", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

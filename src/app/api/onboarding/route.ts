@@ -4,6 +4,7 @@ import { generateIdeas, logRequest } from "@/lib/openai";
 import { sendBatchEmail } from "@/lib/email";
 import { sendMagicLinkServer } from "@/lib/auth-server";
 import { onboardingSchema } from "@/lib/validation";
+import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
 
 function checkEnv(): string | null {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return "Supabase (add NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Vercel)";
@@ -79,8 +80,16 @@ export async function POST(req: Request) {
 
     const userId = user.id;
     const today = new Date().toISOString().slice(0, 10);
-    const { count } = await db.from("idea_batches").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("scheduled_for_date", today);
-    if (count != null && count >= 1) return NextResponse.json({ ok: true, message: "You're already set up. Check your inbox or dashboard." });
+    if (!isDailyBatchLimitDisabled()) {
+      const { count } = await db
+        .from("idea_batches")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("scheduled_for_date", today);
+      if (count != null && count >= 1) {
+        return NextResponse.json({ ok: true, message: "You're already set up. Check your inbox or dashboard." });
+      }
+    }
 
     const summary = (contextInput && contextInput.trim())
       ? contextInput.trim()

@@ -11,7 +11,7 @@ export async function GET() {
     const { data: user, error } = await db
       .from("users")
       .select("id, email, email_frequency, profile_json")
-      .eq("email", authUser.email)
+      .eq("id", authUser.id)
       .single();
 
     if (error || !user) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const { data: existing } = await db
       .from("users")
       .select("id")
-      .eq("email", authUser.email)
+      .eq("id", authUser.id)
       .maybeSingle();
 
     if (!existing) {

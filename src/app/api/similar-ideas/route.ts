@@ -3,6 +3,8 @@ import { generateIdeas, logRequest } from "@/lib/openai";
 import { similarIdeasSchema } from "@/lib/validation";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
+import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
+import type { IdeaJson } from "@/types";
 
 const SIMILAR_IDEAS_DAILY_LIMIT = Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
 
@@ -24,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     const db = supabaseServer();
-    const { data: appUser } = await db.from("users").select("id, profile_json").eq("email", authUser.email).single();
+    const { data: appUser } = await db.from("users").select("id, profile_json").eq("id", authUser.id).single();
     if (!appUser) {
       return NextResponse.json({ error: "Session unavailable. Refresh and try again." }, { status: 401 });
     }
@@ -35,18 +37,20 @@ export async function POST(req: Request) {
       parseInt(today.slice(5, 7), 10) - 1,
       parseInt(today.slice(8, 10), 10) + 1
     )).toISOString().slice(0, 10);
-    const { count } = await db
-      .from("request_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", appUser.id)
-      .eq("kind", "similar_ideas")
-      .gte("created_at", `${today}T00:00:00.000Z`)
-      .lt("created_at", `${tomorrow}T00:00:00.000Z`);
-    if (count != null && count >= SIMILAR_IDEAS_DAILY_LIMIT) {
-      return NextResponse.json(
-        { error: "You've used your free ideas for today. Upgrade or try again tomorrow." },
-        { status: 403 }
-      );
+    if (!isDailyBatchLimitDisabled()) {
+      const { count } = await db
+        .from("request_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", appUser.id)
+        .eq("kind", "similar_ideas")
+        .gte("created_at", `${today}T00:00:00.000Z`)
+        .lt("created_at", `${tomorrow}T00:00:00.000Z`);
+      if (count != null && count >= SIMILAR_IDEAS_DAILY_LIMIT) {
+        return NextResponse.json(
+          { error: "You've used your free ideas for today. Upgrade or try again tomorrow." },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await req.json().catch(() => ({}));
@@ -74,43 +78,45 @@ export async function POST(req: Request) {
       costEst: usage.costEst,
     });
 
-    let savedIds: string[] = [];
-    try {
-      const profile = (appUser.profile_json as { plan?: string }) ?? {};
-      const isPaid = profile.plan === "pro" || profile.plan === "team";
+    const profile = (appUser.profile_json as { plan?: string }) ?? {};
+    const isPaid = profile.plan === "pro" || profile.plan === "team";
 
-      const { data: batch } = await db
-        .from("idea_batches")
-        .insert({ user_id: appUser.id, scheduled_for_date: today })
-        .select("id")
-        .single();
+    const { data: batch, error: batchError } = await db
+      .from("idea_batches")
+      .insert({ user_id: appUser.id, scheduled_for_date: today })
+      .select("id")
+      .single();
 
-      if (batch) {
-        const ideaRows = ideas.map((ideaJson) => ({
-          batch_id: batch.id,
-          user_id: appUser.id,
-          idea_json: ideaJson,
-          is_public: !isPaid,
-        }));
-        await db.from("ideas").insert(ideaRows);
-
-        const { data: saved } = await db
-          .from("ideas")
-          .select("id")
-          .eq("batch_id", batch.id)
-          .order("created_at");
-        savedIds = (saved ?? []).map((r) => r.id);
-      }
-    } catch (e) {
-      console.error("similar-ideas: failed to save for user", e);
+    if (batchError || !batch) {
+      console.error("similar-ideas: batch insert", batchError);
+      return NextResponse.json({ error: "Failed to create batch" }, { status: 500 });
     }
 
-    const ideasWithIds = ideas.map((idea, i) => ({
-      ...idea,
-      _savedId: savedIds[i] || null,
+    const ideaRows = ideas.map((ideaJson) => ({
+      batch_id: batch.id,
+      user_id: appUser.id,
+      idea_json: ideaJson,
+      is_public: !isPaid,
     }));
+    const { error: ideasError } = await db.from("ideas").insert(ideaRows);
+    if (ideasError) {
+      console.error("similar-ideas: ideas insert", ideasError);
+      return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
+    }
 
-    return NextResponse.json({ ok: true, ideas: ideasWithIds });
+    const { data: saved } = await db
+      .from("ideas")
+      .select("id")
+      .eq("batch_id", batch.id)
+      .order("created_at");
+    const ideaIds = (saved ?? []).map((r) => r.id);
+
+    return NextResponse.json({
+      ok: true,
+      batchId: batch.id,
+      ideas: ideas as IdeaJson[],
+      ideaIds,
+    });
   } catch (e) {
     console.error("similar-ideas", e);
     return NextResponse.json({ error: "Server error. Please try again later." }, { status: 500 });

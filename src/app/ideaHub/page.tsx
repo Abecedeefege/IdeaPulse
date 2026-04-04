@@ -1,5 +1,6 @@
 import { IdeaHubContent } from "@/components/IdeaHubContent";
 
-export default function OnboardingPage() {
+export default function IdeaHubPage() {
   return <IdeaHubContent />;
 }
+

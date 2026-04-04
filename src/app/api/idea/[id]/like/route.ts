@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!authUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const { id: ideaId } = await params;
   const db = supabaseServer();
-  const { data: appUser } = await db.from("users").select("id, profile_json").eq("email", authUser.email).single();
+  const { data: appUser } = await db.from("users").select("id, profile_json").eq("id", authUser.id).single();
   if (!appUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   const { data: ideaRow } = await db.from("ideas").select("user_id, idea_json").eq("id", ideaId).single();
   if (!ideaRow) return NextResponse.json({ error: "Idea not found" }, { status: 404 });

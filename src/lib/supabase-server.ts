@@ -25,19 +25,18 @@ export async function createServerSupabase() {
 }
 
 /**
- * Returns the current Supabase Auth user if session exists; otherwise the default "paid" user (pulse@itamoa.com).
- * No login gates until email validation is complete — every visit is treated as that user.
+ * Returns the app `users` row for the current Supabase Auth user, or the bypass email user.
+ * Ensures a `users` row exists (service role) so anonymous/bypass traffic always has an account.
  */
 export async function getServerUser(): Promise<{ id: string; email: string } | null> {
   const supabase = await createServerSupabase();
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (!error && user?.email) return { id: user.id, email: user.email };
+  const { ensureAppUserExists } = await import("@/lib/ensure-app-user");
 
-  const defaultEmail = (process.env.BYPASS_AUTH_EMAIL?.trim() || "pulse@itamoa.com");
-  const { supabaseServer } = await import("@/lib/supabase");
-  const db = supabaseServer();
-  const { data: row } = await db.from("users").select("id, email").eq("email", defaultEmail).single();
-  if (row?.email) return { id: row.id, email: row.email };
+  if (!error && user?.email) {
+    return ensureAppUserExists(user.email);
+  }
 
-  return null;
+  const defaultEmail = process.env.BYPASS_AUTH_EMAIL?.trim() || "pulse@itamoa.com";
+  return ensureAppUserExists(defaultEmail);
 }

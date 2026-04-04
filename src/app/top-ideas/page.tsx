@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
 import Link from "next/link";
-import { curatedIdeas } from "@/data/curated-ideas";
+import { TrendingIdeaRequestsSection } from "@/components/TrendingIdeaRequestsSection";
 
 export const metadata: Metadata = {
   title: "Top Ideas | IdeaPulse",
-  description: "Most liked business ideas by the community plus curated picks.",
-  openGraph: { title: "Top Ideas | IdeaPulse", description: "Most liked business ideas by the community plus curated picks." },
+  description: "Trending prompts and community-favorite business ideas.",
+  openGraph: { title: "Top Ideas | IdeaPulse", description: "Trending prompts and community-favorite business ideas." },
 };
 
 export const dynamic = "force-dynamic";
@@ -28,50 +28,52 @@ export default async function TopIdeasPage() {
     // Supabase not configured or DB error
   }
 
-  const curatedWithCount = curatedIdeas.map((c) => ({ slug: c.slug, category: c.category, idea_json: c.idea_json, likeCount: 0 }));
-  const allIdeas = [...dbIdeas.map((i) => ({ type: "db" as const, id: i.id, idea_json: i.idea_json, likeCount: i.likeCount })),
-    ...curatedWithCount.map((c) => ({ type: "curated" as const, slug: c.slug, category: c.category, idea_json: c.idea_json, likeCount: c.likeCount }))];
-
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-white mb-2">Top ideas</h1>
-      <p className="text-zinc-400 mb-8">Most liked by the community + curated picks.</p>
-      <ul className="space-y-4">
-        {allIdeas.map((item) => {
-          const j = item.idea_json as Record<string, unknown>;
-          const title = String(j.title ?? "Idea");
-          const hook = String(j.one_sentence_hook ?? "");
-          const isCurated = item.type === "curated";
-          // Idea detail page: quick actions and Get similar ideas live here
-          const link = isCurated ? `/idea/curated/${(item as { slug: string }).slug}` : `/idea/${(item as { id: string }).id}`;
-          const category = isCurated ? (item as { category: string }).category : null;
-          return (
-            <li key={isCurated ? (item as { slug: string }).slug : (item as { id: string }).id}>
-              <Link href={link} className="group block rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 transition-colors">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {category && (
-                        <span className="text-xs font-medium text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded">
-                          {category}
-                        </span>
-                      )}
-                      {!isCurated && (item as { likeCount: number }).likeCount > 0 && (
-                        <span className="text-xs text-zinc-500">👍 {(item as { likeCount: number }).likeCount}</span>
+    <div className="space-y-16">
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Top ideas</h1>
+        <p className="text-zinc-400 mb-2">Trending prompts and ideas the community loves.</p>
+      </div>
+
+      <TrendingIdeaRequestsSection
+        heading="Trending idea requests"
+        description="Super detailed prompts that get great ideas. Click to see why they work."
+      />
+
+      <section>
+        <h2 className="text-2xl font-bold text-white mb-2">Community favorites</h2>
+        <p className="text-zinc-400 mb-8">Most liked on IdeaPulse.</p>
+        {dbIdeas.length === 0 ? (
+          <p className="text-zinc-500">No liked ideas yet. Like some ideas from your batches to see them here.</p>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dbIdeas.map((item) => {
+              const j = item.idea_json as Record<string, unknown>;
+              const title = String(j.title ?? "Idea");
+              const hook = String(j.one_sentence_hook ?? "");
+              return (
+                <li key={item.id}>
+                  <Link
+                    href={`/idea/${item.id}`}
+                    className="group flex h-full flex-col rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-semibold text-white line-clamp-2">{title}</h3>
+                      {item.likeCount > 0 && (
+                        <span className="shrink-0 text-xs text-zinc-500">👍 {item.likeCount}</span>
                       )}
                     </div>
-                    <h2 className="font-semibold text-white mt-1">{title}</h2>
-                    <p className="text-sm text-zinc-400 mt-0.5 line-clamp-2">{hook}</p>
-                  </div>
-                  <span className="shrink-0 text-sm font-medium text-violet-400 group-hover:text-violet-300 transition-colors">
-                    View →
-                  </span>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                    <p className="mt-1 text-sm text-zinc-400 line-clamp-3">{hook}</p>
+                    <span className="mt-3 inline-flex text-sm font-medium text-violet-400 group-hover:text-violet-300 transition-colors">
+                      View →
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

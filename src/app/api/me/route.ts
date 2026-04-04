@@ -10,7 +10,7 @@ export async function GET() {
   const { data: user, error } = await db
     .from("users")
     .select("id, email, email_frequency, profile_json")
-    .eq("email", authUser.email)
+    .eq("id", authUser.id)
     .single();
 
   if (error || !user)

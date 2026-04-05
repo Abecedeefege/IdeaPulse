@@ -10,7 +10,7 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-type FetchResult = { batchId: string } | { error: string; redirect?: string };
+type FetchResult = { batchId: string; isAnon?: boolean } | { error: string; redirect?: string };
 
 /**
  * Shared hook for idea generation flows.
@@ -48,8 +48,8 @@ export function useIdeaGenerationRun() {
           return;
         }
 
-        if (result.batchId === "anon") {
-          router.push("/results-anon");
+        if (result.isAnon) {
+          router.push(`/results-anon?batch=${encodeURIComponent(result.batchId)}`);
         } else {
           router.push(`/results?batch=${encodeURIComponent(result.batchId)}`);
         }

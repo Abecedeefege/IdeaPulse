@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import IdeaGenerationLoader from "@/components/IdeaGenerationLoader";
 import { useIdeaGenerationRun } from "@/hooks/use-idea-generation-run";
+import { getOrCreateAnonId } from "@/lib/anonymous-id";
 
 const GOALS = ["Side project / passive income", "Full-time startup", "Content / audience", "Local business", "AI / automation", "Other"];
 const INTERESTS = ["Marketing / growth", "AI / automation", "Content", "Local business", "SaaS", "E-commerce", "Community"];
@@ -66,18 +67,18 @@ export function IdeaHubContent() {
     return !!data?.email;
   };
 
-  const generateAnon = async (context: string): Promise<{ batchId: string } | { error: string }> => {
+  const generateAnon = async (context: string): Promise<{ batchId: string; isAnon?: boolean } | { error: string }> => {
+    const anonId = getOrCreateAnonId();
     const res = await fetch("/api/generate-anon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ context }),
+      body: JSON.stringify({ context, anonId }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { error: data.error || "Something went wrong." };
-    sessionStorage.setItem("anon_ideas", JSON.stringify(data.ideas));
     localStorage.setItem("anon_batch_used", "true");
     setAnonUsed(true);
-    return { batchId: "anon" };
+    return { batchId: data.batchId, isAnon: true };
   };
 
   const handleTextPromptContinue = async () => {

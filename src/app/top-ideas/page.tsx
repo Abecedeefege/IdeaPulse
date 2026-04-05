@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { supabaseServer } from "@/lib/supabase";
 import Link from "next/link";
-import { TrendingIdeaRequestsSection } from "@/components/TrendingIdeaRequestsSection";
+import { TopIdeasSection } from "@/components/TopIdeasSection";
+import { TopPromptsSection } from "@/components/TopPromptsSection";
+import { TopIdeaSeedsSection } from "@/components/TopIdeaSeedsSection";
 
 export const metadata: Metadata = {
   title: "Top Ideas | IdeaPulse",
@@ -31,18 +33,19 @@ export default async function TopIdeasPage() {
   return (
     <div className="space-y-16">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Top ideas</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">Top Ideas</h1>
         <p className="text-zinc-400 mb-2">Trending prompts and ideas the community loves.</p>
       </div>
 
-      <TrendingIdeaRequestsSection
-        heading="Trending idea requests"
-        description="Super detailed prompts that get great ideas. Click to see why they work."
-      />
+      <TopIdeasSection />
+
+      <TopPromptsSection />
+
+      <TopIdeaSeedsSection />
 
       <section>
-        <h2 className="text-2xl font-bold text-white mb-2">Community favorites</h2>
-        <p className="text-zinc-400 mb-8">Most liked on IdeaPulse.</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Community Favorites</h2>
+        <p className="text-zinc-400 mb-8">Most liked ideas on IdeaPulse — voted by the community.</p>
         {dbIdeas.length === 0 ? (
           <p className="text-zinc-500">No liked ideas yet. Like some ideas from your batches to see them here.</p>
         ) : (

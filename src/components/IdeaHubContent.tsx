@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IdeaGenerationLoader from "@/components/IdeaGenerationLoader";
 import { useIdeaGenerationRun } from "@/hooks/use-idea-generation-run";
 import { getOrCreateAnonId } from "@/lib/anonymous-id";
@@ -46,7 +46,17 @@ export function IdeaHubContent() {
   const [interests, setInterests] = useState<string[]>([]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { run, loading, messages, sessionKey } = useIdeaGenerationRun();
+
+  // Pre-fill text prompt from URL query param (e.g. /ideaHub?prompt=...)
+  useEffect(() => {
+    const promptParam = searchParams.get("prompt");
+    if (promptParam && !textPrompt) {
+      setTextPrompt(promptParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleInterest = (x: string) => {
     setInterests((prev) => (prev.includes(x) ? prev.filter((i) => i !== x) : [...prev, x]));

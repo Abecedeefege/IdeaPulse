@@ -2,20 +2,34 @@ import type { Metadata } from "next";
 import "./globals.css";
 import UsageBanner from "@/components/UsageBanner";
 import Logo from "@/components/Logo";
-import NavAuth from "@/components/NavAuth";
+import HeaderNav from "@/components/HeaderNav";
 import Link from "next/link";
+import { getServerUser } from "@/lib/supabase-server";
+import { getUserPlan } from "@/lib/user-plan";
+import type { PlanType } from "@/lib/user-plan";
 
 export const metadata: Metadata = {
   title: "IdeaPulse",
-  description: "10 tailored ideas in your inbox. React, share, or get a full analysis.",
+  description: "5 tailored ideas in your inbox. React, share, or get a full analysis.",
   icons: {
     icon: "/icon.svg",
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  let planType: PlanType = "anonymous";
+  try {
+    const authUser = await getServerUser();
+    if (authUser) {
+      const plan = await getUserPlan(authUser.id);
+      planType = plan.planType;
+    }
+  } catch {
+    // Fall back to anonymous if auth check fails
+  }
+
   return (
     <html lang="en" className="dark">
       <body className="antialiased min-h-screen bg-zinc-950 text-zinc-100">
@@ -35,18 +49,7 @@ export default function RootLayout({
                 Idea Hub
               </Link>
             </div>
-            <nav className="flex-1 min-w-0 flex items-center justify-end gap-4 text-sm">
-              <a href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">
-                Dashboard
-              </a>
-              <a href="/top-ideas" className="text-zinc-400 hover:text-white transition-colors">
-                Top Ideas
-              </a>
-              <a href="/pricing" className="text-zinc-400 hover:text-white transition-colors">
-                Pricing
-              </a>
-              <NavAuth />
-            </nav>
+            <HeaderNav planType={planType} />
           </div>
           <div className="sm:hidden border-t border-zinc-800/80 bg-zinc-900/80">
             <div className="max-w-4xl mx-auto px-4 py-2 flex justify-center">

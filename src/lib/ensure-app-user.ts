@@ -32,5 +32,8 @@ export async function ensureAppUserExists(email: string): Promise<{ id: string; 
     return null;
   }
 
+  // Create a free user_plans row for the new user
+  await db.from("user_plans").insert({ user_id: inserted.id, plan_type: "free" }).single();
+
   return { id: inserted.id, email: inserted.email };
 }

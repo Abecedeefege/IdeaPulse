@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     const summary = (contextInput && contextInput.trim())
       ? contextInput.trim()
       : [profileJson.preference_summary, profileJson.primary_goal, Array.isArray(profileJson.interests) ? profileJson.interests.join(", ") : ""].filter(Boolean).join(". ") || "general audience";
-    const { ideas, usage } = await generateIdeas(summary, 10);
+    const { ideas, usage } = await generateIdeas(summary, 5);
     await logRequest({ userId, kind: "generate_ideas", model: process.env.OPENAI_MODEL_FAST, tokensIn: usage.prompt, tokensOut: usage.completion, costEst: usage.costEst });
 
     const { data: batch, error: batchError } = await db.from("idea_batches").insert({ user_id: userId, scheduled_for_date: today }).select("id").single();

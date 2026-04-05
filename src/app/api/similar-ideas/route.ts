@@ -3,11 +3,9 @@ import { generateIdeas, logRequest } from "@/lib/openai";
 import { similarIdeasSchema } from "@/lib/validation";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
-import { isDailyBatchLimitDisabled } from "@/lib/feature-flags";
 import { generateSlug } from "@/lib/slugify";
+import { getUserPlan, isPremium } from "@/lib/user-plan";
 import type { IdeaJson } from "@/types";
-
-const SIMILAR_IDEAS_DAILY_LIMIT = Number(process.env.RATE_LIMIT_IDEAS_PER_DAY) || 100;
 
 function checkEnv(): string | null {
   if (!process.env.OPENAI_API_KEY) return "OpenAI (add OPENAI_API_KEY in Vercel)";
@@ -27,29 +25,45 @@ export async function POST(req: Request) {
     }
 
     const db = supabaseServer();
-    const { data: appUser } = await db.from("users").select("id, profile_json").eq("id", authUser.id).single();
+    const { data: appUser } = await db.from("users").select("id, profile_json, idea_profile").eq("id", authUser.id).single();
     if (!appUser) {
       return NextResponse.json({ error: "Session unavailable. Refresh and try again." }, { status: 401 });
     }
 
+    // Tier-based rate limiting
+    const userPlan = await getUserPlan(appUser.id);
     const today = new Date().toISOString().slice(0, 10);
     const tomorrow = new Date(Date.UTC(
       parseInt(today.slice(0, 4), 10),
       parseInt(today.slice(5, 7), 10) - 1,
       parseInt(today.slice(8, 10), 10) + 1
     )).toISOString().slice(0, 10);
-    if (!isDailyBatchLimitDisabled()) {
+
+    if (userPlan.planType === "pack") {
+      if (userPlan.packCreditsRemaining < 5) {
+        return NextResponse.json(
+          { error: "Not enough credits. Purchase another pack.", redirect: "/pricing" },
+          { status: 403 }
+        );
+      }
+    } else {
       const { count } = await db
-        .from("request_logs")
+        .from("ideas")
         .select("id", { count: "exact", head: true })
         .eq("user_id", appUser.id)
-        .eq("kind", "similar_ideas")
         .gte("created_at", `${today}T00:00:00.000Z`)
         .lt("created_at", `${tomorrow}T00:00:00.000Z`);
-      if (count != null && count >= SIMILAR_IDEAS_DAILY_LIMIT) {
+
+      if (count != null && count >= userPlan.dailyIdeaLimit) {
+        if (userPlan.planType === "free") {
+          return NextResponse.json(
+            { error: "Daily limit reached. Upgrade for more ideas.", redirect: "/pricing" },
+            { status: 403 }
+          );
+        }
         return NextResponse.json(
-          { error: "You've used your free ideas for today. Upgrade or try again tomorrow." },
-          { status: 403 }
+          { error: "Daily limit reached. Try again tomorrow." },
+          { status: 429 }
         );
       }
     }
@@ -63,12 +77,13 @@ export async function POST(req: Request) {
     let summary: string;
     if (parsed.data.seedIdea) {
       const s = parsed.data.seedIdea;
-      summary = `Generate 10 ideas similar in theme and audience to this: ${[s.title, s.one_sentence_hook, s.why_it_could_work].filter(Boolean).join(". ")}`;
+      summary = `Generate 5 ideas similar in theme and audience to this: ${[s.title, s.one_sentence_hook, s.why_it_could_work].filter(Boolean).join(". ")}`;
     } else {
       summary = parsed.data.context!.trim();
     }
 
-    const { ideas, usage } = await generateIdeas(summary, 10);
+    const ideaProfile = (appUser as { idea_profile?: string }).idea_profile || undefined;
+    const { ideas, usage } = await generateIdeas(summary, 5, ideaProfile);
 
     await logRequest({
       userId: appUser.id,
@@ -78,9 +93,6 @@ export async function POST(req: Request) {
       tokensOut: usage.completion,
       costEst: usage.costEst,
     });
-
-    const profile = (appUser.profile_json as { plan?: string }) ?? {};
-    const isPaid = profile.plan === "pro" || profile.plan === "team";
 
     const { data: batch, error: batchError } = await db
       .from("idea_batches")
@@ -97,12 +109,23 @@ export async function POST(req: Request) {
       batch_id: batch.id,
       user_id: appUser.id,
       idea_json: ideaJson,
-      is_public: !isPaid,
+      is_public: !isPremium(userPlan.planType),
     }));
     const { error: ideasError } = await db.from("ideas").insert(ideaRows);
     if (ideasError) {
       console.error("similar-ideas: ideas insert", ideasError);
       return NextResponse.json({ error: "Failed to save ideas" }, { status: 500 });
+    }
+
+    // Deduct pack credits after successful generation
+    if (userPlan.planType === "pack") {
+      await db
+        .from("user_plans")
+        .update({
+          pack_credits_remaining: userPlan.packCreditsRemaining - 5,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", appUser.id);
     }
 
     const { data: saved } = await db

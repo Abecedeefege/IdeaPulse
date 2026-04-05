@@ -9,7 +9,7 @@ export async function GET() {
   const db = supabaseServer();
   const { data: user, error } = await db
     .from("users")
-    .select("id, email, email_frequency, profile_json")
+    .select("id, email, email_frequency, profile_json, idea_profile")
     .eq("id", authUser.id)
     .single();
 
@@ -21,5 +21,6 @@ export async function GET() {
     email: user.email,
     email_frequency: user.email_frequency,
     profile: user.profile_json ?? {},
+    idea_profile: (user as { idea_profile?: string }).idea_profile ?? "",
   });
 }

@@ -14,5 +14,8 @@ export async function signInWithMagicLink(email: string, redirectPath?: string) 
     email,
     options: { emailRedirectTo: redirectTo },
   });
-  if (error) throw error;
+  if (error) {
+    console.error("[auth] signInWithMagicLink failed:", error.message, error);
+    throw error;
+  }
 }

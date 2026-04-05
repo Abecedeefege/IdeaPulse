@@ -159,60 +159,6 @@ export async function sendBatchEmail(
   }
 }
 
-/**
- * Send a magic-link login email via Resend.
- * `actionLink` is the full Supabase verification URL from admin.generateLink().
- */
-export async function sendMagicLinkEmail(
-  to: string,
-  actionLink: string,
-): Promise<void> {
-  const html = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6;">
-    <tr>
-      <td align="center" style="padding: 40px 16px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <tr>
-            <td style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%); padding: 32px 24px; text-align: center;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">IdeaPulse</h1>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 32px 24px;">
-              <p style="margin: 0 0 24px 0; font-size: 15px; color: #6b7280; line-height: 1.6;">Click the button below to sign in to IdeaPulse. This link expires in 1 hour.</p>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center">
-                    <a href="${actionLink}" style="display: inline-block; background: #7c3aed; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600;">Sign in to IdeaPulse</a>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin: 24px 0 0 0; font-size: 13px; color: #9ca3af; line-height: 1.5;">If you didn't request this email, you can safely ignore it.</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 16px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0; font-size: 12px; color: #d1d5db;">IdeaPulse</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-
-  await getResend().emails.send({
-    from,
-    to: [to],
-    subject: "Sign in to IdeaPulse",
-    html,
-  });
-}
-
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }

@@ -38,6 +38,8 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
+// NOTE: /auth/callback must NOT be listed here — it handles the PKCE code
+// exchange before a session exists.
 export const config = {
   matcher: [
     "/dashboard/:path*",

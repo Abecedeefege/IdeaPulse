@@ -20,7 +20,7 @@ export async function sendMagicLinkServer(email: string): Promise<{ ok: boolean;
     console.error("auth-server: NEXT_PUBLIC_APP_URL is missing or localhost; refusing to send magic link");
     return { ok: false, error: "APP_URL_NOT_SET" };
   }
-  const redirectTo = `${appUrl}/loading`;
+  const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent("/ideas")}`;
   const supabase = createClient(url, anon, { auth: { persistSession: false } });
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),

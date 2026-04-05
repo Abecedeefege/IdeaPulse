@@ -37,7 +37,24 @@ function LoginForm() {
       );
     } catch (err) {
       setStatus("error");
-      const msg = err instanceof Error && err.message.toLowerCase().includes("url") ? "Service misconfigured. Please try again later." : "Failed to send email. Please try again.";
+      console.error("[login] Magic link error:", err);
+
+      let msg = "Failed to send email. Please try again.";
+
+      if (err instanceof Error) {
+        const lower = err.message.toLowerCase();
+
+        if (lower.includes("url") || lower.includes("not set") || lower.includes("not configured")) {
+          msg = "Service misconfigured. Please try again later.";
+        } else if (lower.includes("rate limit") || lower.includes("once every")) {
+          msg = "Too many requests. Please wait a minute and try again.";
+        } else if (lower.includes("signups not allowed") || lower.includes("logins are disabled")) {
+          msg = "Email login is not enabled. Please contact support.";
+        } else if (lower.includes("invalid") && lower.includes("email")) {
+          msg = "Please enter a valid email address.";
+        }
+      }
+
       setMessage(msg);
     }
   };

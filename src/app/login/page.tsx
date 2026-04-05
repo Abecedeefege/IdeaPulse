@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { signInWithMagicLink } from "@/lib/auth";
 import FirehoseLoader from "@/components/FirehoseLoader";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const urlMessage = searchParams.get("message");
+
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -52,6 +56,11 @@ export default function LoginPage() {
   return (
     <div className="max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-white mb-4">Log in / Sign up</h1>
+      {urlMessage && (
+        <div className="mb-4 rounded-xl border border-violet-500/50 bg-violet-500/10 p-3 text-center text-sm text-zinc-300">
+          {urlMessage}
+        </div>
+      )}
       <p className="text-sm text-zinc-400 mb-6">
         Enter your email. We&apos;ll send you a magic link — no password needed.
       </p>
@@ -79,5 +88,13 @@ export default function LoginPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto text-center text-zinc-400">Loading…</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

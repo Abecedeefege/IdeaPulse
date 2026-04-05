@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import IdeaGenerationLoader from "@/components/IdeaGenerationLoader";
 import { useIdeaGenerationRun } from "@/hooks/use-idea-generation-run";
 
@@ -43,6 +44,7 @@ export function IdeaHubContent() {
   const [riskTolerance, setRiskTolerance] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
 
+  const router = useRouter();
   const { run, loading, messages, sessionKey } = useIdeaGenerationRun();
 
   const toggleInterest = (x: string) => {
@@ -55,7 +57,6 @@ export function IdeaHubContent() {
     }
     return false;
   });
-  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   /** Returns true if user is logged in, false if anonymous */
   const checkAuth = async (): Promise<boolean> => {
@@ -66,10 +67,6 @@ export function IdeaHubContent() {
   };
 
   const generateAnon = async (context: string): Promise<{ batchId: string } | { error: string }> => {
-    if (anonUsed) {
-      setShowSignupPrompt(true);
-      return { error: "Create a free account to get 20 ideas per day." };
-    }
     const res = await fetch("/api/generate-anon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,16 +77,19 @@ export function IdeaHubContent() {
     sessionStorage.setItem("anon_ideas", JSON.stringify(data.ideas));
     localStorage.setItem("anon_batch_used", "true");
     setAnonUsed(true);
-    setShowSignupPrompt(true);
     return { batchId: "anon" };
   };
 
-  const handleTextPromptContinue = () => {
+  const handleTextPromptContinue = async () => {
     const trimmed = textPrompt.trim();
     if (!trimmed) return;
+    const isAuth = await checkAuth();
+    if (!isAuth && anonUsed) {
+      router.push("/login?message=" + encodeURIComponent("Create a free account to get 20 ideas per day."));
+      return;
+    }
     void run(
       async () => {
-        const isAuth = await checkAuth();
         if (!isAuth) return generateAnon(trimmed);
         const res = await fetch("/api/similar-ideas", {
           method: "POST",
@@ -98,7 +98,7 @@ export function IdeaHubContent() {
           body: JSON.stringify({ context: trimmed }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) return { error: data.error || "Something went wrong." };
+        if (!res.ok) return { error: data.error || "Something went wrong.", redirect: data.redirect };
         return { batchId: data.batchId };
       },
       "text",
@@ -106,10 +106,14 @@ export function IdeaHubContent() {
     );
   };
 
-  const handleRandomIdeas = () => {
+  const handleRandomIdeas = async () => {
+    const isAuth = await checkAuth();
+    if (!isAuth && anonUsed) {
+      router.push("/login?message=" + encodeURIComponent("Create a free account to get 20 ideas per day."));
+      return;
+    }
     void run(
       async () => {
-        const isAuth = await checkAuth();
         if (!isAuth) return generateAnon(RANDOM_IDEAS_CONTEXT);
         const res = await fetch("/api/similar-ideas", {
           method: "POST",
@@ -118,7 +122,7 @@ export function IdeaHubContent() {
           body: JSON.stringify({ context: RANDOM_IDEAS_CONTEXT }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) return { error: data.error || "Something went wrong." };
+        if (!res.ok) return { error: data.error || "Something went wrong.", redirect: data.redirect };
         return { batchId: data.batchId };
       },
       "random",
@@ -128,9 +132,13 @@ export function IdeaHubContent() {
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const goalValue = primaryGoal === "Other" ? goalOther : primaryGoal;
+    const isAuth = await checkAuth();
+    if (!isAuth && anonUsed) {
+      router.push("/login?message=" + encodeURIComponent("Create a free account to get 20 ideas per day."));
+      return;
+    }
     void run(
       async () => {
-        const isAuth = await checkAuth();
         if (!isAuth) {
           const context = [goalValue, timePerWeek, budget, skills, riskTolerance, interests.join(", ")].filter(Boolean).join(". ");
           return generateAnon(context || "general audience");
@@ -147,7 +155,7 @@ export function IdeaHubContent() {
           body: JSON.stringify({ profile }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) return { error: data.error || "Something went wrong." };
+        if (!res.ok) return { error: data.error || "Something went wrong.", redirect: data.redirect };
         return { batchId: data.batchId };
       },
       "custom",
@@ -158,20 +166,6 @@ export function IdeaHubContent() {
   return (
     <Suspense fallback={<div className="max-w-lg mx-auto py-12 text-zinc-400">Loading…</div>}>
       <IdeaGenerationLoader show={loading} messages={messages} sessionKey={sessionKey} />
-
-      {showSignupPrompt && (
-        <div className="max-w-2xl mx-auto mb-6 rounded-xl border border-violet-500/50 bg-violet-500/10 p-4 text-center">
-          <p className="text-sm text-zinc-300 mb-2">
-            Create a free account to get <strong>20 ideas per day</strong> and save them to your dashboard.
-          </p>
-          <a
-            href="/login"
-            className="inline-block bg-violet-600 hover:bg-violet-500 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            Sign up free
-          </a>
-        </div>
-      )}
 
       <div className="max-w-2xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-white">What do you want to create next</h1>

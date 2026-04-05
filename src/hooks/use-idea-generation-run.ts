@@ -10,7 +10,7 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-type FetchResult = { batchId: string } | { error: string };
+type FetchResult = { batchId: string } | { error: string; redirect?: string };
 
 /**
  * Shared hook for idea generation flows.
@@ -40,7 +40,11 @@ export function useIdeaGenerationRun() {
 
         if ("error" in result) {
           setLoading(false);
-          alert(result.error);
+          if (result.redirect) {
+            router.push(result.redirect);
+          } else {
+            alert(result.error);
+          }
           return;
         }
 

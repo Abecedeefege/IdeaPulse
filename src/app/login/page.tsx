@@ -2,7 +2,6 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { signInWithMagicLink } from "@/lib/auth";
 import FirehoseLoader from "@/components/FirehoseLoader";
 
 function LoginForm() {
@@ -27,7 +26,17 @@ function LoginForm() {
       const isExisting = checkData.exists;
 
       const redirectPath = isExisting ? "/dashboard" : "/profile";
-      await signInWithMagicLink(email.trim(), redirectPath);
+
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), redirectPath }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send magic link");
+      }
 
       setStatus("done");
       setMessage(

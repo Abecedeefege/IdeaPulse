@@ -7,8 +7,8 @@ export async function signInWithMagicLink(email: string, redirectPath?: string) 
   if (!base || LOCALHOST_PATTERN.test(base)) {
     throw new Error("App URL not set. Please try again later.");
   }
-  const path = redirectPath?.startsWith("/") ? redirectPath : `/${redirectPath || "dashboard"}`;
-  const redirectTo = `${base}${path}`;
+  const finalPath = redirectPath?.startsWith("/") ? redirectPath : `/${redirectPath || "dashboard"}`;
+  const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(finalPath)}`;
   const supabase = supabaseBrowser();
   const { error } = await supabase.auth.signInWithOtp({
     email,

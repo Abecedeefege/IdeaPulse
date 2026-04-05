@@ -34,10 +34,27 @@ function AuthCallbackInner() {
 
     // The Supabase client reads #access_token from window.location.hash
     // automatically on init and fires SIGNED_IN / TOKEN_REFRESHED.
+    /** Claim anonymous ideas if the user had an anon_id before signing in. */
+    const claimAnonymousIdeas = () => {
+      const anonId = localStorage.getItem("anon_id");
+      if (anonId) {
+        // Fire and forget — don't block navigation
+        fetch("/api/claim-anon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ anonId }),
+        }).catch(() => { /* best effort */ });
+        localStorage.removeItem("anon_id");
+        localStorage.removeItem("anon_batch_used");
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event) => {
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           subscription.unsubscribe();
+          claimAnonymousIdeas();
           router.replace(next);
         }
       },
@@ -48,6 +65,7 @@ function AuthCallbackInner() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         subscription.unsubscribe();
+        claimAnonymousIdeas();
         router.replace(next);
       }
     });

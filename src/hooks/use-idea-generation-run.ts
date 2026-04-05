@@ -39,6 +39,7 @@ export function useIdeaGenerationRun() {
         const [result] = await Promise.all([fetchFn(), delay(MIN_LOADING_MS)]);
 
         if ("error" in result) {
+          setLoading(false);
           if (result.redirect) {
             router.push(result.redirect);
           } else {
@@ -47,11 +48,15 @@ export function useIdeaGenerationRun() {
           return;
         }
 
-        router.push(`/results?batch=${encodeURIComponent(result.batchId)}`);
+        if (result.batchId === "anon") {
+          router.push("/results-anon");
+        } else {
+          router.push(`/results?batch=${encodeURIComponent(result.batchId)}`);
+        }
+        // Keep loading=true until navigation unmounts this component
       } catch {
-        alert("Network error. Try again.");
-      } finally {
         setLoading(false);
+        alert("Network error. Try again.");
       }
     },
     [router],

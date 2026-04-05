@@ -74,6 +74,7 @@ export function IdeaHubContent() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { error: data.error || "Something went wrong." };
+    sessionStorage.setItem("anon_ideas", JSON.stringify(data.ideas));
     localStorage.setItem("anon_batch_used", "true");
     setAnonUsed(true);
     return { batchId: "anon" };

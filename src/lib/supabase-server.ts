@@ -25,8 +25,9 @@ export async function createServerSupabase() {
 }
 
 /**
- * Returns the app `users` row for the current Supabase Auth user, or the bypass email user.
- * Ensures a `users` row exists (service role) so anonymous/bypass traffic always has an account.
+ * Returns the app `users` row for the current Supabase Auth user.
+ * Returns null for anonymous visitors (no auth session).
+ * Falls back to bypass email only when BYPASS_AUTH_EMAIL is set (dev convenience).
  */
 export async function getServerUser(): Promise<{ id: string; email: string } | null> {
   const supabase = await createServerSupabase();
@@ -37,6 +38,12 @@ export async function getServerUser(): Promise<{ id: string; email: string } | n
     return ensureAppUserExists(user.email);
   }
 
-  const defaultEmail = process.env.BYPASS_AUTH_EMAIL?.trim() || "pulse@itamoa.com";
-  return ensureAppUserExists(defaultEmail);
+  // In development, allow bypass auth for testing
+  const bypassEmail = process.env.BYPASS_AUTH_EMAIL?.trim();
+  if (bypassEmail) {
+    return ensureAppUserExists(bypassEmail);
+  }
+
+  // Anonymous visitor — no user record
+  return null;
 }

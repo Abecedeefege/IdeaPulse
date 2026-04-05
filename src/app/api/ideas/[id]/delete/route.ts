@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerUser } from "@/lib/supabase-server";
 import { supabaseServer } from "@/lib/supabase";
+import { maybeRebuildIdeaProfile } from "@/lib/idea-profile";
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,10 +40,13 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { error: deleteError } = await db.from("ideas").delete().eq("id", ideaId);
+    const { error: deleteError } = await db.from("ideas").update({ is_deleted: true }).eq("id", ideaId);
     if (deleteError) {
       return NextResponse.json({ error: "Failed to delete idea" }, { status: 500 });
     }
+
+    // Trigger ideaProfile rebuild in background
+    maybeRebuildIdeaProfile(appUser.id).catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch (e) {

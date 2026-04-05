@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [brief, setBrief] = useState("");
+  const [ideaProfile, setIdeaProfile] = useState("");
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly">("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [goalOther, setGoalOther] = useState("");
@@ -45,6 +46,7 @@ export default function ProfilePage() {
         }
         setIsLoggedIn(true);
         setEmailFrequency(data.email_frequency === "daily" ? "daily" : "weekly");
+        setIdeaProfile(data.idea_profile || "");
         const p = data.profile || {};
         setBrief(p.preference_summary || "");
         const goalsList = GOALS.slice(0, -1);
@@ -151,6 +153,16 @@ export default function ProfilePage() {
             {brief.length}/{BRIEF_MAX}
           </p>
         </div>
+
+        {ideaProfile && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+            <label className="block text-sm font-medium text-zinc-300 mb-1">Your idea profile</label>
+            <p className="text-sm text-zinc-400">{ideaProfile}</p>
+            <p className="text-xs text-zinc-600 mt-1">
+              Auto-generated from your likes and deletes. Used to personalize future ideas.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">How often do you want ideas?</label>

@@ -14,6 +14,8 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
   RATE_LIMIT_IDEAS_PER_DAY: z.coerce.number().default(100),
   RATE_LIMIT_ANALYSES_PER_WEEK_FREE: z.coerce.number().default(0),
+  DAILY_LIMIT_FREE: z.coerce.number().default(20),
+  DAILY_LIMIT_SUBSCRIBER: z.coerce.number().default(100),
 });
 
 export type Env = z.infer<typeof envSchema>;

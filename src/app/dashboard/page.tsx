@@ -12,6 +12,7 @@ type DashboardIdea = {
   idea_json: unknown;
   created_at: string;
   slug: string | null;
+  is_liked: boolean;
 };
 
 export default async function DashboardPage() {
@@ -25,12 +26,37 @@ export default async function DashboardPage() {
   let ideas: DashboardIdea[] = [];
   if (appUser) {
     try {
+      // Fetch ideas excluding soft-deleted ones
       const { data } = await db
         .from("ideas")
         .select("id, batch_id, idea_json, created_at, slug")
         .eq("user_id", appUser.id)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
-      ideas = (data as DashboardIdea[] | null) ?? [];
+
+      // Fetch liked idea IDs for this user
+      const { data: likedInteractions } = await db
+        .from("interactions")
+        .select("idea_id")
+        .eq("user_id", appUser.id)
+        .eq("type", "like");
+
+      const likedSet = new Set((likedInteractions ?? []).map((i) => i.idea_id));
+
+      // Map ideas with is_liked flag
+      const rawIdeas = (data ?? []) as { id: string; batch_id: string; idea_json: unknown; created_at: string; slug: string | null }[];
+      ideas = rawIdeas.map((idea) => ({
+        ...idea,
+        is_liked: likedSet.has(idea.id),
+      }));
+
+      // Sort: liked first, then by difficulty ascending
+      ideas.sort((a, b) => {
+        if (a.is_liked !== b.is_liked) return a.is_liked ? -1 : 1;
+        const aDiff = Number((a.idea_json as Record<string, unknown>)?.difficulty_1_to_5 ?? 5);
+        const bDiff = Number((b.idea_json as Record<string, unknown>)?.difficulty_1_to_5 ?? 5);
+        return aDiff - bDiff;
+      });
     } catch (e) {
       console.error("dashboard: failed to load ideas", e);
     }

@@ -40,11 +40,12 @@ const ideaArrayJsonSchema = {
 
 export async function generateIdeas(
   userProfileSummary: string,
-  count: number = 10
+  count: number = 5,
+  ideaProfile?: string
 ): Promise<{ ideas: IdeaJson[]; usage: TokenUsage }> {
   const res = await getClient().chat.completions.create({
     model: modelFast,
-    messages: [{ role: "user", content: buildIdeasPrompt(userProfileSummary, count) }],
+    messages: [{ role: "user", content: buildIdeasPrompt(userProfileSummary, count, ideaProfile) }],
     response_format: {
       type: "json_schema",
       json_schema: {

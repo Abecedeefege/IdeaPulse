@@ -53,6 +53,8 @@ function LoginForm() {
           msg = "Email login is not enabled. Please contact support.";
         } else if (lower.includes("invalid") && lower.includes("email")) {
           msg = "Please enter a valid email address.";
+        } else if (lower.includes("sending confirmation email") || lower.includes("sending email")) {
+          msg = "Email delivery failed. Please try again in a few minutes or contact support.";
         }
       }
 

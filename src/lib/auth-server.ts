@@ -1,11 +1,10 @@
-import { supabaseServer } from "@/lib/supabase";
-import { sendMagicLinkEmail } from "@/lib/email";
+import { createClient } from "@supabase/supabase-js";
 
 const LOCALHOST_PATTERN = /^https?:\/\/localhost(:\d+)?(\/|$)/i;
 
 /**
- * Generates a magic link via Supabase Admin API (bypasses email rate limits)
- * and delivers it via Resend.
+ * Send a magic-link email via Supabase's built-in signInWithOtp.
+ * Uses the anon key so Supabase handles email delivery (via configured SMTP).
  */
 export async function sendMagicLinkServer(
   email: string,
@@ -20,19 +19,22 @@ export async function sendMagicLinkServer(
   const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
 
   try {
-    const db = supabaseServer();
-    const { data, error } = await db.auth.admin.generateLink({
-      type: "magiclink",
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } },
+    );
+
+    const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { redirectTo },
+      options: { emailRedirectTo: redirectTo },
     });
 
-    if (error || !data?.properties?.action_link) {
-      console.error("auth-server: generateLink failed", error?.message);
-      return { ok: false, error: error?.message ?? "Failed to generate link" };
+    if (error) {
+      console.error("auth-server: signInWithOtp failed", error.message);
+      return { ok: false, error: error.message };
     }
 
-    await sendMagicLinkEmail(email.trim(), data.properties.action_link);
     return { ok: true };
   } catch (e) {
     console.error("auth-server: unexpected error", e);

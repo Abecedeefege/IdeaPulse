@@ -32,11 +32,6 @@ export default async function TopIdeasPage() {
 
   return (
     <div className="space-y-16">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Top Ideas</h1>
-        <p className="text-zinc-400 mb-2">Trending prompts and ideas the community loves.</p>
-      </div>
-
       <TopIdeasSection />
 
       <TopPromptsSection />

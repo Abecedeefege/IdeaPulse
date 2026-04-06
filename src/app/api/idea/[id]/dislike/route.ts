@@ -29,15 +29,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
     return NextResponse.json({ error: "Paid feature", redirect: `${base}/pricing` }, { status: 402 });
   }
-  const idea = { idea_json: ideaRow.idea_json };
   await db.from("interactions").insert({ user_id: appUser.id, idea_id: ideaId, type: "dislike", content_text: null });
-  const title = idea.idea_json && typeof idea.idea_json === "object" && "title" in idea.idea_json ? String((idea.idea_json as { title: string }).title) : "";
-  const prev = profile.preference_summary || "";
-  const added = title ? `Disliked: ${title}. ` : "";
-  const updatedProfile = { ...profile, preference_summary: (prev + added).trim().slice(0, 2000) };
-  await db.from("users").update({
-    profile_json: updatedProfile,
-    updated_at: new Date().toISOString(),
-  }).eq("id", appUser.id);
   return NextResponse.json({ ok: true });
 }

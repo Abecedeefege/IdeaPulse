@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!authUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const { id: ideaId } = await params;
   const db = supabaseServer();
-  const { data: appUser } = await db.from("users").select("id, profile_json").eq("id", authUser.id).single();
+  const { data: appUser } = await db.from("users").select("id").eq("id", authUser.id).single();
   if (!appUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   const { data: ideaRow } = await db.from("ideas").select("user_id, idea_json").eq("id", ideaId).single();
   if (!ideaRow) return NextResponse.json({ error: "Idea not found" }, { status: 404 });
@@ -38,19 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   await db.from("interactions").insert({ user_id: appUser.id, idea_id: ideaId, type: "like", content_text: null });
 
-  // Update preference_summary (legacy) and trigger idea_profile rebuild
-  const idea = { idea_json: ideaRow.idea_json };
-  const profile = (appUser.profile_json as { preference_summary?: string }) ?? {};
-  const title = idea.idea_json && typeof idea.idea_json === "object" && "title" in idea.idea_json ? String((idea.idea_json as { title: string }).title) : "";
-  const prev = profile.preference_summary || "";
-  const added = title ? `Liked: ${title}. ` : "";
-  const updatedProfile = { ...profile, preference_summary: (prev + added).trim().slice(0, 2000) };
-  await db.from("users").update({
-    profile_json: updatedProfile,
-    updated_at: new Date().toISOString(),
-  }).eq("id", appUser.id);
-
-  // Trigger profile rebuild in background
+  // Trigger AI-based idea_profile rebuild in background
   maybeRebuildIdeaProfile(appUser.id).catch(() => {});
 
   return NextResponse.json({ ok: true });

@@ -56,7 +56,7 @@ function AuthCallbackInner() {
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           subscription.unsubscribe();
           claimAnonymousIdeas();
-          router.replace(next);
+          window.location.href = next;
         }
       },
     );
@@ -67,7 +67,7 @@ function AuthCallbackInner() {
       if (session?.user) {
         subscription.unsubscribe();
         claimAnonymousIdeas();
-        router.replace(next);
+        window.location.href = next;
       }
     });
 

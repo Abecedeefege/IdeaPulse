@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
   const [brief, setBrief] = useState("");
   const [ideaProfile, setIdeaProfile] = useState("");
   const [emailFrequency, setEmailFrequency] = useState<"daily" | "weekly">("weekly");
@@ -45,6 +46,7 @@ export default function ProfilePage() {
           return;
         }
         setIsLoggedIn(true);
+        setEmail(data.email);
         setEmailFrequency(data.email_frequency === "daily" ? "daily" : "weekly");
         setIdeaProfile(data.idea_profile || "");
         const p = data.profile || {};
@@ -126,7 +128,10 @@ export default function ProfilePage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Your profile</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Your profile</h1>
+          {email && <p className="text-sm text-zinc-400 mt-1">{email}</p>}
+        </div>
         <button
           type="button"
           onClick={handleLogout}

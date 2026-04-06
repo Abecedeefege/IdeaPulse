@@ -8,10 +8,15 @@ import FirehoseLoader from "@/components/FirehoseLoader";
 function LoginForm() {
   const searchParams = useSearchParams();
   const urlMessage = searchParams.get("message");
+  const urlRedirect = searchParams.get("redirect");
 
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  /** Check if a redirect path is safe (relative, no open-redirect tricks). */
+  const isSafeRedirect = (path: string) =>
+    path.startsWith("/") && !path.startsWith("//") && !path.includes(":");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +31,14 @@ function LoginForm() {
       const checkData = await checkRes.json().catch(() => ({ exists: false }));
       const isExisting = checkData.exists;
 
-      const redirectPath = isExisting ? "/dashboard" : "/profile";
+      // Honor the redirect param from middleware if present and safe,
+      // otherwise fall back to the default based on user existence.
+      const redirectPath =
+        urlRedirect && isSafeRedirect(urlRedirect)
+          ? urlRedirect
+          : isExisting
+            ? "/dashboard"
+            : "/profile";
 
       await signInWithMagicLink(email.trim(), redirectPath);
 

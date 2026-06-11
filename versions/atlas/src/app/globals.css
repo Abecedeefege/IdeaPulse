@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0a0b;
+  --foreground: #f4f4f5;
+  --muted: #a1a1aa;
+  --accent: #a78bfa;
+  --accent-deep: #7c3aed;
+  --hairline: #27272a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-feature-settings: "kern";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Editorial serif display utility — system stacks only, no webfonts. */
+.font-display {
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  letter-spacing: -0.01em;
+}
+
+/* Tabular numerals for "№ 042" indices. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.45);
+  color: #fafafa;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}

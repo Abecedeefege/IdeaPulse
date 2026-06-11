@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-[#09090b] text-zinc-100 antialiased;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.45);
+}
+
+/* Swipe deck cards must never trigger native scrolling/zoom while dragging. */
+.touch-none-strict {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
